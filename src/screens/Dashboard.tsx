@@ -1,73 +1,232 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../constants/theme';
-import { BentoTile } from '../components/ui/BentoTile';
 import { useStore } from '../store/useStore';
-
+import { Flame, BookOpen, Brain, Play, Sparkles, Search, PenTool, Calendar, Clock, Share2, GraduationCap } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { TabParamList, RootStackParamList } from '../navigation/AppNavigator';
+import { CompositeNavigationProp } from '@react-navigation/native';
+import { KANJI_DATA } from '../constants/kanji';
+import Animated, { useAnimatedStyle, withRepeat, withTiming, useSharedValue } from 'react-native-reanimated';
+import { SkeletonLoader } from '../components/ui/SkeletonLoader';
+import { StudyTimer } from '../components/ui/StudyTimer';
+import { ShareProgress } from '../components/ui/ShareProgress';
+
+const FACTS = [
+  "Bowing (ojigi) is a sign of respect. The deeper the bow, the more respect shown.",
+  "There are no plural forms or gendered nouns in Japanese.",
+  "Japan consists of over 6,800 islands.",
+  "Slurping noodles is considered polite and shows you're enjoying the meal!",
+  "Kanji are adopted Chinese characters, while Hiragana and Katakana are native scripts."
+];
 
 export const Dashboard: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { progress } = useStore();
+type DashboardNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList, 'Home'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
 
-  const levels = [
-    { id: 'N5', title: 'N5', subtitle: 'Beginner', isLocked: !progress.unlockedLevels.includes('N5'), color: COLORS.primary },
-    { id: 'N4', title: 'N4', subtitle: 'Elementary', isLocked: !progress.unlockedLevels.includes('N4'), color: COLORS.secondary },
-    { id: 'N3', title: 'N3', subtitle: 'Intermediate', isLocked: !progress.unlockedLevels.includes('N3'), color: '#FFD700' },
-    { id: 'N2', title: 'N2', subtitle: 'Upper-Intermediate', isLocked: !progress.unlockedLevels.includes('N2'), color: '#00FF00' },
-    { id: 'N1', title: 'N1', subtitle: 'Advanced', isLocked: !progress.unlockedLevels.includes('N1'), color: '#FF00FF' },
-  ];
+  const navigation = useNavigation<DashboardNavigationProp>();
+  const { progress } = useStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [showTimer, setShowTimer] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+
+  useEffect(() => {
+    // Simulate loading for skeleton demo
+    const timer = setTimeout(() => setIsLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const dailyKanji = useMemo(() => {
+    const today = new Date().getDay();
+    return KANJI_DATA[today % KANJI_DATA.length];
+  }, []);
+
+  const randomFact = useMemo(() => {
+    const today = new Date().getDay();
+    return FACTS[today % FACTS.length];
+  }, []);
+
+  const pulseOpacity = useSharedValue(0.6);
+
+  React.useEffect(() => {
+    pulseOpacity.value = withRepeat(
+      withTiming(1, { duration: 1000 }),
+      -1,
+      true
+    );
+  }, []);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: pulseOpacity.value,
+  }));
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <SkeletonLoader width={120} height={16} style={{ marginBottom: SPACING.sm }} />
+            <SkeletonLoader width={200} height={42} />
+          </View>
+          
+          {/* Hero Skeleton */}
+          <SkeletonLoader height={200} borderRadius={24} style={{ marginBottom: SPACING.md }} />
+          
+          {/* Stats Skeleton */}
+          <View style={styles.row}>
+            <SkeletonLoader height={100} style={{ flex: 1, borderRadius: 20 }} />
+            <SkeletonLoader height={100} style={{ flex: 1, borderRadius: 20, marginHorizontal: SPACING.sm }} />
+            <SkeletonLoader height={100} style={{ flex: 1, borderRadius: 20 }} />
+          </View>
+          
+          {/* Bento Grid Skeleton */}
+          <View style={styles.bentoGrid}>
+            <SkeletonLoader height={120} style={{ flex: 2, borderRadius: 20 }} />
+            <SkeletonLoader height={120} style={{ flex: 1.2, borderRadius: 20, marginLeft: SPACING.md }} />
+          </View>
+          
+          {/* Fact Card Skeleton */}
+          <SkeletonLoader height={100} borderRadius={20} />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.greeting}>DOKI DOKI</Text>
-          <Text style={styles.title}>DESU</Text>
+          <Text style={styles.greeting}>おかえり (Welcome Back)</Text>
+          <Text style={styles.title}>DOKI DOKI DESU</Text>
         </View>
 
-        <View style={styles.grid}>
-          <BentoTile
-            title={levels[0].title}
-            subtitle={levels[0].subtitle}
-            isLocked={levels[0].isLocked}
-            color={levels[0].color}
-            style={styles.largeTile}
-            onPress={() => navigation.navigate('N5Selection', { level: 'N5' })}
-          />
-          <View style={styles.column}>
-            {levels.slice(1, 3).map((level) => (
-              <BentoTile
-                key={level.id}
-                title={level.title}
-                subtitle="Coming Soon"
-                isLocked={true}
-                color={level.color}
-                style={styles.smallTile}
-              />
-            ))}
+        {/* HERO CARD */}
+        <TouchableOpacity 
+          style={styles.heroCard}
+          activeOpacity={0.9}
+          onPress={() => navigation.navigate('Learn')}
+        >
+          <View style={styles.heroHeader}>
+            <Text style={styles.heroLabel}>CURRENT LESSON</Text>
+            <View style={styles.levelBadge}>
+              <Text style={styles.levelText}>N5</Text>
+            </View>
+          </View>
+          <Text style={styles.heroTitle}>Lesson {progress.currentLessonId}</Text>
+          <Text style={styles.heroSubtitle}>Continue your journey</Text>
+          
+          <Animated.View style={[styles.playButton, pulseStyle]}>
+            <Play color={COLORS.background} size={24} fill={COLORS.background} />
+            <Text style={styles.playText}>CONTINUE</Text>
+          </Animated.View>
+        </TouchableOpacity>
+
+        {/* STATS ROW */}
+        <View style={styles.row}>
+          <View style={[styles.statTile, { backgroundColor: '#FF6B6B' }]}>
+            <Flame color={COLORS.background} size={24} />
+            <Text style={styles.statValue}>{progress.streakDays}</Text>
+            <Text style={styles.statLabel}>Day Streak</Text>
+          </View>
+          <View style={[styles.statTile, { backgroundColor: '#4ECDC4' }]}>
+            <Brain color={COLORS.background} size={24} />
+            <Text style={styles.statValue}>{progress.kanjiMastered}</Text>
+            <Text style={styles.statLabel}>Kanji</Text>
+          </View>
+          <View style={[styles.statTile, { backgroundColor: '#45B7D1' }]}>
+            <BookOpen color={COLORS.background} size={24} />
+            <Text style={styles.statValue}>{progress.vocabLearned}</Text>
+            <Text style={styles.statLabel}>Vocab</Text>
+          </View>
+          <View style={[styles.statTile, { backgroundColor: '#FFD700' }]}>
+            <GraduationCap color={COLORS.background} size={24} />
+            <Text style={styles.statValue}>{progress.grammarLearned}</Text>
+            <Text style={styles.statLabel}>Grammar</Text>
           </View>
         </View>
 
-        <View style={styles.row}>
-          {levels.slice(3).map((level) => (
-            <BentoTile
-              key={level.id}
-              title={level.title}
-              subtitle="Locked"
-              isLocked={true}
-              color={level.color}
-              style={styles.halfTile}
-            />
-          ))}
+        {/* BENTO GRID */}
+        <View style={styles.bentoGrid}>
+          {/* DAILY CHALLENGE */}
+          <TouchableOpacity style={[styles.bentoBox, styles.challengeBox]} activeOpacity={0.9}>
+            <Text style={styles.boxTitle}>Daily Kanji</Text>
+            <View style={styles.kanjiContainer}>
+              <Text style={styles.hugeKanji}>{dailyKanji.kanji}</Text>
+              <View>
+                <Text style={styles.kanjiMeaning}>{dailyKanji.meaning}</Text>
+                <Text style={styles.kanjiReading}>{dailyKanji.reading}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          {/* QUICK REVIEW */}
+          <TouchableOpacity style={[styles.bentoBox, styles.reviewBox]} activeOpacity={0.9} onPress={() => navigation.navigate('Review')}>
+            <Sparkles color={COLORS.accent} size={28} />
+            <Text style={styles.boxTitle}>Quick Review</Text>
+            <Text style={styles.boxSubtitle}>5 Random Words</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.statsCard}>
-          <Text style={styles.statsTitle}>YOUR PROGRESS</Text>
-          <Text style={styles.statsValue}>{progress.completedLessons.length} / 25 Lessons</Text>
+        {/* QUICK ACCESS TOOLS */}
+        <Text style={styles.sectionTitle}>TOOLS</Text>
+        <View style={styles.toolsGrid}>
+          <TouchableOpacity 
+            style={styles.toolBox} 
+            onPress={() => navigation.navigate('Search')}
+          >
+            <Search color={COLORS.primary} size={28} />
+            <Text style={styles.toolTitle}>Dictionary</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.toolBox} 
+            onPress={() => navigation.navigate('WritingPractice')}
+          >
+            <PenTool color={COLORS.secondary} size={28} />
+            <Text style={styles.toolTitle}>Writing</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.toolBox} 
+            onPress={() => navigation.navigate('StudyStreak')}
+          >
+            <Calendar color="#FFD700" size={28} />
+            <Text style={styles.toolTitle}>Streak</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.toolBox} 
+            onPress={() => setShowTimer(true)}
+          >
+            <Clock color="#4ECDC4" size={28} />
+            <Text style={styles.toolTitle}>Timer</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* SHARE PROGRESS */}
+        <TouchableOpacity style={styles.shareCard} onPress={() => setShowShare(true)}>
+          <Share2 color={COLORS.accent} size={24} />
+          <Text style={styles.shareText}>Share Your Progress</Text>
+        </TouchableOpacity>
+
+        {/* DID YOU KNOW */}
+        <View style={styles.factCard}>
+          <Text style={styles.factTitle}>Did You Know?</Text>
+          <Text style={styles.factText}>{randomFact}</Text>
+        </View>
+
+        {/* Modals */}
+        <StudyTimer 
+          isVisible={showTimer} 
+          onClose={() => setShowTimer(false)} 
+          lessonId={progress.currentLessonId}
+        />
+        <ShareProgress 
+          isVisible={showShare} 
+          onClose={() => setShowShare(false)} 
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -80,67 +239,216 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: SPACING.md,
+    paddingBottom: SPACING.xl * 2,
   },
   header: {
-    marginBottom: SPACING.xl,
-    marginTop: SPACING.lg,
+    marginBottom: SPACING.lg,
+    marginTop: SPACING.sm,
   },
   greeting: {
-    fontSize: 18,
-    color: COLORS.secondary,
-    fontWeight: '900',
-    letterSpacing: 2,
-  },
-  title: {
-    fontSize: 64,
-    color: COLORS.accent,
-    fontWeight: '900',
-    lineHeight: 60,
-    marginTop: -5,
-  },
-  grid: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-    marginBottom: SPACING.md,
-  },
-  largeTile: {
-    flex: 2,
-    aspectRatio: 1,
-  },
-  column: {
-    flex: 1,
-    gap: SPACING.md,
-  },
-  smallTile: {
-    flex: 1,
-    aspectRatio: 1,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-    marginBottom: SPACING.md,
-  },
-  halfTile: {
-    flex: 1,
-    aspectRatio: 2,
-  },
-  statsCard: {
-    backgroundColor: COLORS.gray,
-    padding: SPACING.lg,
-    borderRadius: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
-  },
-  statsTitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.textSecondary,
     fontWeight: '700',
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  statsValue: {
-    fontSize: 24,
-    color: COLORS.accent,
+  title: {
+    fontSize: 42,
+    color: COLORS.primary,
     fontWeight: '900',
+    letterSpacing: -1,
+  },
+  heroCard: {
+    backgroundColor: COLORS.accent,
+    borderRadius: 24,
+    padding: SPACING.xl,
+    marginBottom: SPACING.md,
+    overflow: 'hidden',
+  },
+  heroHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  heroLabel: {
+    color: COLORS.background,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  levelBadge: {
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  levelText: {
+    color: COLORS.background,
+    fontWeight: 'bold',
+  },
+  heroTitle: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: COLORS.background,
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: SPACING.xl,
+  },
+  playButton: {
+    backgroundColor: COLORS.text,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.md,
+    borderRadius: 16,
+    gap: SPACING.sm,
+  },
+  playText: {
+    color: COLORS.background,
+    fontWeight: '900',
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  statTile: {
+    flex: 1,
+    borderRadius: 20,
+    padding: SPACING.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: COLORS.background,
+    marginTop: SPACING.sm,
+  },
+  statLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.8)',
     marginTop: 4,
+  },
+  bentoGrid: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  bentoBox: {
+    backgroundColor: COLORS.gray,
+    borderRadius: 20,
+    padding: SPACING.lg,
+  },
+  challengeBox: {
+    flex: 2,
+  },
+  reviewBox: {
+    flex: 1.2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  boxTitle: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: SPACING.sm,
+  },
+  boxSubtitle: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginTop: SPACING.sm,
+  },
+  kanjiContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  hugeKanji: {
+    fontSize: 48,
+    color: COLORS.primary,
+    fontWeight: '900',
+  },
+  kanjiMeaning: {
+    fontSize: 18,
+    color: COLORS.text,
+    fontWeight: 'bold',
+  },
+  kanjiReading: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  factCard: {
+    backgroundColor: COLORS.gray,
+    borderRadius: 20,
+    padding: SPACING.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.secondary,
+  },
+  factTitle: {
+    fontSize: 14,
+    color: COLORS.secondary,
+    fontWeight: '800',
+    marginBottom: SPACING.sm,
+    textTransform: 'uppercase',
+  },
+  factText: {
+    fontSize: 16,
+    color: COLORS.text,
+    lineHeight: 24,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+    letterSpacing: 2,
+    marginBottom: SPACING.md,
+    marginTop: SPACING.md,
+  },
+  toolsGrid: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  toolBox: {
+    flex: 1,
+    backgroundColor: COLORS.gray,
+    borderRadius: 16,
+    padding: SPACING.md,
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  toolTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.accent,
+  },
+  shareCard: {
+    backgroundColor: COLORS.primary + '20',
+    borderRadius: 16,
+    padding: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  shareText: {
+    color: COLORS.primary,
+    fontWeight: '700',
+    fontSize: 16,
   },
 });

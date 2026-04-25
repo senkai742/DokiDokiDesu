@@ -6,11 +6,21 @@ import { LessonPhase, GlobalProgress } from '../types/lesson';
 interface AppState {
   progress: GlobalProgress;
   completeOnboarding: (knowsSomeJapanese: boolean) => void;
+  addFavorite: (wordId: string) => void;
+  removeFavorite: (wordId: string) => void;
+  addDifficultWord: (wordId: string) => void;
+  removeDifficultWord: (wordId: string) => void;
+  recordStudyTime: (minutes: number) => void;
+  recordStudySession: (minutes: number, lessonId?: number) => void;
   setLessonCompleted: (lessonId: number) => void;
   setCurrentPhase: (phase: LessonPhase) => void;
   setCurrentLesson: (lessonId: number) => void;
   unlockLevel: (level: string) => void;
   syncProgress: () => Promise<void>;
+  recordActivity: () => void;
+  incrementKanji: (count?: number) => void;
+  incrementVocab: (count?: number) => void;
+  incrementGrammar: (count?: number) => void;
 }
 
 const initialState: GlobalProgress = {
@@ -19,6 +29,15 @@ const initialState: GlobalProgress = {
   currentPhase: 'vocab',
   unlockedLevels: ['N5'],
   hasCompletedOnboarding: false,
+  streakDays: 0,
+  lastActiveDate: '',
+  kanjiMastered: 0,
+  vocabLearned: 0,
+  grammarLearned: 0,
+  favorites: [],
+  difficultWords: [],
+  studyMinutes: 0,
+  studyHistory: [], // Array of {date: string, minutes: number, lessonsCompleted: number[]}
 };
 
 export const useStore = create<AppState>()(
@@ -75,6 +94,124 @@ export const useStore = create<AppState>()(
         // Logic to sync with cloud when connection is detected
         // This would be called by a background sync listener
         console.log('Syncing progress to cloud...', get().progress);
+      },
+
+      recordActivity: () => {
+        set((state) => {
+          const today = new Date().toISOString().split('T')[0];
+          const lastActive = state.progress.lastActiveDate;
+          if (lastActive === today) return state; // Already active today
+          
+          let streak = state.progress.streakDays;
+          if (lastActive) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (lastActive === yesterday.toISOString().split('T')[0]) {
+              streak += 1;
+            } else {
+              streak = 1;
+            }
+          } else {
+            streak = 1;
+          }
+          
+          return {
+            progress: {
+              ...state.progress,
+              streakDays: streak,
+              lastActiveDate: today,
+            }
+          };
+        });
+      },
+
+      incrementKanji: (count = 1) => {
+        set((state) => ({
+          progress: { ...state.progress, kanjiMastered: state.progress.kanjiMastered + count }
+        }));
+      },
+
+      incrementVocab: (count = 1) => {
+        set((state) => ({
+          progress: { ...state.progress, vocabLearned: state.progress.vocabLearned + count }
+        }));
+      },
+
+      incrementGrammar: (count = 1) => {
+        set((state) => ({
+          progress: { ...state.progress, grammarLearned: state.progress.grammarLearned + count }
+        }));
+      },
+
+      addFavorite: (wordId: string) => {
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            favorites: [...new Set([...state.progress.favorites, wordId])]
+          }
+        }));
+      },
+
+      removeFavorite: (wordId: string) => {
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            favorites: state.progress.favorites.filter(id => id !== wordId)
+          }
+        }));
+      },
+
+      addDifficultWord: (wordId: string) => {
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            difficultWords: [...new Set([...state.progress.difficultWords, wordId])]
+          }
+        }));
+      },
+
+      removeDifficultWord: (wordId: string) => {
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            difficultWords: state.progress.difficultWords.filter(id => id !== wordId)
+          }
+        }));
+      },
+
+      recordStudyTime: (minutes: number) => {
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            studyMinutes: state.progress.studyMinutes + minutes
+          }
+        }));
+      },
+
+      recordStudySession: (minutes: number, lessonId?: number) => {
+        set((state) => {
+          const today = new Date().toISOString().split('T')[0];
+          const existingEntry = state.progress.studyHistory.find(h => h.date === today);
+          
+          let newHistory;
+          if (existingEntry) {
+            newHistory = state.progress.studyHistory.map(h =>
+              h.date === today
+                ? { ...h, minutes: h.minutes + minutes, lessonsCompleted: lessonId ? [...new Set([...h.lessonsCompleted, lessonId])] : h.lessonsCompleted }
+                : h
+            );
+          } else {
+            newHistory = [...state.progress.studyHistory, { date: today, minutes, lessonsCompleted: lessonId ? [lessonId] : [] }];
+          }
+          
+          return {
+            progress: {
+              ...state.progress,
+              studyMinutes: state.progress.studyMinutes + minutes,
+              studyHistory: newHistory
+            }
+          };
+        });
       },
     }),
     {

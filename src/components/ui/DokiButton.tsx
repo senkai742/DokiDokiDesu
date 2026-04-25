@@ -11,6 +11,7 @@ interface DokiButtonProps {
   textStyle?: TextStyle;
   color?: string;
   icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
 }
 
 export const DokiButton: React.FC<DokiButtonProps> = ({
@@ -20,6 +21,7 @@ export const DokiButton: React.FC<DokiButtonProps> = ({
   textStyle,
   color = COLORS.primary,
   icon = <ChevronRight color={COLORS.background} size={24} />,
+  iconPosition = 'right',
 }) => {
   const scale = useSharedValue(1);
 
@@ -30,23 +32,24 @@ export const DokiButton: React.FC<DokiButtonProps> = ({
   // Pulse effect shared value
   const pulseScale = useSharedValue(1);
 
-  React.useEffect(() => {
-    pulseScale.value = withRepeat(
-      withTiming(1.05, { duration: 1000 }),
-      -1,
-      true
-    );
-  }, []);
+  // Temporarily disabled to debug animation error
+  // React.useEffect(() => {
+  //   pulseScale.value = withRepeat(
+  //     withTiming(1.05, { duration: 1000 }),
+  //     -1,
+  //     true
+  //   );
+  // }, [pulseScale]);
 
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulseScale.value }],
-    opacity: interpolatePulse(pulseScale.value),
+    // opacity: interpolatePulse(pulseScale.value),
   }));
 
-  function interpolatePulse(val: number) {
-    'worklet';
-    return 1.1 - val; // Fades out as it grows
-  }
+  // function interpolatePulse(val: number) {
+  //   'worklet';
+  //   return 1.1 - val; // Fades out as it grows
+  // }
 
   const handlePressIn = () => {
     scale.value = withSpring(0.95);
@@ -66,8 +69,9 @@ export const DokiButton: React.FC<DokiButtonProps> = ({
     >
       <Animated.View style={[styles.pulseOverlay, { borderColor: color }, pulseStyle]} />
       <Animated.View style={[styles.content, animatedStyle]}>
+        {iconPosition === 'left' && icon}
         <Text style={[styles.text, textStyle]}>{title}</Text>
-        {icon}
+        {iconPosition === 'right' && icon}
       </Animated.View>
     </TouchableOpacity>
   );

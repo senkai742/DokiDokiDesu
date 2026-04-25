@@ -11,6 +11,35 @@ export interface VocabWord {
   exampleEnglish?: string;
 }
 
+export interface GrammarExample {
+  id: string;
+  type: 'static' | 'toggle' | 'table';
+  formula: string;
+  explanation: string;
+  examples: {
+    primary: string;
+    secondary?: string;
+    englishPrimary: string;
+    englishSecondary?: string;
+    romajiPrimary: string;
+    romajiSecondary?: string;
+    tokens: {
+      text: string;
+      type: 'noun' | 'particle' | 'predicate' | 'text';
+      note?: string;
+    }[];
+    tokensSecondary?: {
+      text: string;
+      type: 'noun' | 'particle' | 'predicate' | 'text';
+      note?: string;
+    }[];
+  }[];
+  table?: {
+    headers: string[];
+    rows: string[][];
+  };
+}
+
 export interface GrammarRule {
   id: string;
   title: string;
@@ -68,4 +97,13 @@ export interface GlobalProgress {
   currentPhase: LessonPhase;
   unlockedLevels: string[]; // ['N5', 'N4', etc.]
   hasCompletedOnboarding: boolean;
+  streakDays: number;
+  lastActiveDate: string;
+  kanjiMastered: number;
+  vocabLearned: number;
+  grammarLearned: number;
+  favorites: string[];
+  difficultWords: string[];
+  studyMinutes: number;
+  studyHistory: { date: string; minutes: number; lessonsCompleted: number[] }[];
 }

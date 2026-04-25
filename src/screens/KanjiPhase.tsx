@@ -5,10 +5,11 @@ import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { lesson1 } from '../data/lessons/lesson1';
 import Animated, { useAnimatedStyle, withSpring, interpolate, useSharedValue } from 'react-native-reanimated';
-import { ChevronRight, RotateCcw } from 'lucide-react-native';
+import { ChevronRight, RotateCcw, Volume2 } from 'lucide-react-native';
 import { useStore } from '../store/useStore';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DokiButton } from '../components/ui/DokiButton';
+import { tts } from '../utils/tts';
 
 const { width } = Dimensions.get('window');
 
@@ -40,6 +41,18 @@ export const KanjiPhase: React.FC = () => {
   const flip = () => {
     rotate.value = withSpring(isFlipped.value ? 0 : 180, { damping: 12 });
     isFlipped.value = !isFlipped.value;
+    // Auto-read when flipping to back (shows readings)
+    if (!isFlipped.value && currentKanji.kunYomi) {
+      tts.speak(currentKanji.kunYomi, 'ja-JP');
+    }
+  };
+
+  const handleSpeak = () => {
+    // Read kun-yomi first (more common), then on-yomi
+    const reading = currentKanji.kunYomi || currentKanji.onYomi;
+    if (reading) {
+      tts.speak(reading, 'ja-JP');
+    }
   };
 
   const handleNext = () => {
@@ -81,6 +94,9 @@ export const KanjiPhase: React.FC = () => {
               <Text style={styles.infoLabel}>KUN</Text>
               <Text style={styles.infoValue}>{currentKanji.kunYomi}</Text>
             </View>
+            <TouchableOpacity style={styles.speakBtn} onPress={handleSpeak}>
+              <Volume2 color={COLORS.secondary} size={28} />
+            </TouchableOpacity>
             <View style={styles.divider} />
             <Text style={styles.meaningText}>{currentKanji.meaning}</Text>
             
@@ -190,6 +206,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.accent,
+  },
+  speakBtn: {
+    alignSelf: 'center',
+    padding: SPACING.sm,
+    marginVertical: SPACING.sm,
   },
   divider: {
     width: '100%',
