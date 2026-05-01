@@ -49,7 +49,7 @@ export const GrammarPhase: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'GrammarPhase'>>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { lessonId } = route.params;
-  const { setCurrentPhase, setLessonCompleted, incrementGrammar } = useStore();
+  const { setCurrentPhase, setLessonCompleted, markGrammarLearned } = useStore();
 
   const grammarData = useMemo(() => {
     switch (lessonId) {
@@ -98,8 +98,8 @@ export const GrammarPhase: React.FC = () => {
   const example = currentRule.examples[0];
 
   const handleNext = () => {
-    // Increment grammar count for the rule just studied
-    incrementGrammar(1);
+    // Mark current grammar rule as learned (prevents double counting)
+    markGrammarLearned(`${lessonId}-${currentRule.id}`);
     if (step < grammarData.length - 1) {
       setStep(step + 1);
       setIsNegativeState(false);

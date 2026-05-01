@@ -22,7 +22,7 @@ export const KanjiList: React.FC = () => {
   const isFlipped = useSharedValue(false);
 
   const currentStudyKanji = KANJI_DATA[studyIndex];
-  const isKanjiLearned = (kanjiChar: string) => progress.learnedKanjiIds.includes(kanjiChar);
+  const isKanjiLearned = (kanjiChar: string) => progress.learnedKanjiIds?.includes(kanjiChar) ?? false;
 
   const renderItem = ({ item }: { item: typeof KANJI_DATA[0] }) => {
     const learned = isKanjiLearned(item.kanji);

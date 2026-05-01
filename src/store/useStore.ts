@@ -24,6 +24,7 @@ interface AppState {
   markKanjiLearned: (kanjiId: string) => void;
   markVocabLearned: (vocabId: string) => void;
   markGrammarLearned: (grammarId: string) => void;
+  resetProgress: () => void;
 }
 
 const initialState: GlobalProgress = {
@@ -192,6 +193,10 @@ export const useStore = create<AppState>()(
         set((state) => ({
           progress: { ...state.progress, grammarLearned: state.progress.grammarLearned + count }
         }));
+      },
+
+      resetProgress: () => {
+        set({ progress: initialState });
       },
 
       addFavorite: (wordId: string) => {

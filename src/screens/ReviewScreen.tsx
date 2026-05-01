@@ -110,7 +110,7 @@ export const ReviewScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Flashcard Review</Text>
         <Text style={styles.progressText}>
@@ -147,7 +147,7 @@ export const ReviewScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.container}>
+      <View style={styles.content}>
         {/* Progress Bar */}
         <View style={styles.progressBar}>
           <View 
@@ -165,7 +165,13 @@ export const ReviewScreen: React.FC = () => {
             <View style={styles.cardFace}>
               <Text style={styles.cardKanji}>{currentWord.kanji}</Text>
               <Text style={styles.cardKana}>{currentWord.kana}</Text>
-              <TouchableOpacity style={styles.speakerBtn} onPress={handleSpeak}>
+              <TouchableOpacity 
+                style={styles.speakerBtn} 
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleSpeak();
+                }}
+              >
                 <Volume2 color={COLORS.primary} size={32} />
               </TouchableOpacity>
               <Text style={styles.cardHint}>Tap to see meaning</Text>
@@ -176,7 +182,13 @@ export const ReviewScreen: React.FC = () => {
               <Text style={styles.cardEnglish}>{currentWord.english}</Text>
               <Text style={styles.cardRomaji}>{currentWord.romaji}</Text>
               <Text style={styles.partOfSpeech}>{currentWord.partOfSpeech}</Text>
-              <TouchableOpacity style={styles.speakerBtnBack} onPress={handleSpeak}>
+              <TouchableOpacity 
+                style={styles.speakerBtnBack} 
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleSpeak();
+                }}
+              >
                 <Volume2 color={COLORS.primary} size={28} />
                 <Text style={styles.playAgainText}>Play again</Text>
               </TouchableOpacity>
@@ -199,6 +211,7 @@ export const ReviewScreen: React.FC = () => {
             icon={<ChevronRight color={COLORS.background} size={24} />}
           />
         </View>
+
       </View>
     </SafeAreaView>
   );
@@ -208,6 +221,13 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.md,
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -227,11 +247,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textSecondary,
     fontWeight: '700',
-  },
-  container: {
-    flex: 1,
-    padding: SPACING.lg,
-    alignItems: 'center',
   },
   progressBar: {
     width: '100%',
@@ -297,30 +312,30 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.xl,
+    padding: SPACING.lg,
   },
   cardKanji: {
-    fontSize: 72,
+    fontSize: 56,
     fontWeight: '900',
     color: COLORS.accent,
-    marginBottom: SPACING.md,
-  },
-  cardKana: {
-    fontSize: 24,
-    color: COLORS.textSecondary,
     marginBottom: SPACING.sm,
   },
+  cardKana: {
+    fontSize: 20,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xs,
+  },
   cardEnglish: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '800',
     color: COLORS.accent,
     textAlign: 'center',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   cardRomaji: {
-    fontSize: 20,
+    fontSize: 16,
     color: COLORS.textSecondary,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   partOfSpeech: {
     backgroundColor: COLORS.primary,

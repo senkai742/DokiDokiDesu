@@ -26,7 +26,7 @@ type ProfileNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<ProfileNavigationProp>();
-  const { progress, setLessonCompleted } = useStore();
+  const { progress, resetProgress } = useStore();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -41,7 +41,7 @@ export const ProfileScreen: React.FC = () => {
       'This will reset all your lesson progress. This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Reset', style: 'destructive', onPress: () => console.log('Progress reset') }
+        { text: 'Reset', style: 'destructive', onPress: () => resetProgress() }
       ]
     );
   };

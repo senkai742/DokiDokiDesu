@@ -21,14 +21,20 @@ export const FlipCard: React.FC<FlipCardProps> = ({ isFlipped, frontContent, bac
   const frontStyle = useAnimatedStyle(() => {
     const rotateValue = interpolate(isFlipped.value, [0, 1], [0, 180]);
     return {
-      transform: [{ rotateY: `${rotateValue}deg` }],
+      transform: [
+        { perspective: 1000 },
+        { rotateY: `${rotateValue}deg` }
+      ],
     };
   });
 
   const backStyle = useAnimatedStyle(() => {
     const rotateValue = interpolate(isFlipped.value, [0, 1], [180, 360]);
     return {
-      transform: [{ rotateY: `${rotateValue}deg` }],
+      transform: [
+        { perspective: 1000 },
+        { rotateY: `${rotateValue}deg` }
+      ],
     };
   });
 
@@ -47,7 +53,7 @@ export const FlipCard: React.FC<FlipCardProps> = ({ isFlipped, frontContent, bac
 const styles = StyleSheet.create({
   container: {
     width: width * 0.85,
-    height: width * 1.1,
+    height: width * 0.85,
   },
   card: {
     position: 'absolute',
