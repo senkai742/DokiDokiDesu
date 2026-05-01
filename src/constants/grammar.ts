@@ -144,7 +144,7 @@ export const LESSON_2_GRAMMAR: GrammarExample[] = [
         romajiPrimary: 'Kono hon wa watashi no desu.',
         tokens: [
           { text: 'この', type: 'particle', note: 'This (modifies N)' },
-          { text: '本', type: 'noun', note: 'Book' },
+          { text: '本', type: 'noun' },
           { text: 'は', type: 'particle' },
           { text: 'わたし', type: 'noun' },
           { text: 'の', type: 'particle', note: 'Possessive marker' },
@@ -169,13 +169,13 @@ export const LESSON_2_GRAMMAR: GrammarExample[] = [
         tokens: [
           { text: 'はい', type: 'text' },
           { text: '、', type: 'text' },
-          { text: 'そう', type: 'noun' },
+          { text: 'そう', type: 'noun', note: 'So/That way (refers to previous statement)' },
           { text: 'です', type: 'predicate' },
         ],
         tokensSecondary: [
           { text: 'いいえ', type: 'text' },
           { text: '、', type: 'text' },
-          { text: 'そう', type: 'noun' },
+          { text: 'そう', type: 'noun', note: 'So/That way (refers to previous statement)' },
           { text: 'じゃありません', type: 'predicate' },
         ]
       }
@@ -194,11 +194,11 @@ export const LESSON_2_GRAMMAR: GrammarExample[] = [
         tokens: [
           { text: 'これ', type: 'noun' },
           { text: 'は', type: 'particle' },
-          { text: '「９」', type: 'noun' },
+          { text: '「９」', type: 'text' },
           { text: 'です', type: 'predicate' },
           { text: 'か', type: 'particle' },
           { text: '、', type: 'text' },
-          { text: '「７」', type: 'noun' },
+          { text: '「７」', type: 'text' },
           { text: 'です', type: 'predicate' },
           { text: 'か', type: 'particle' },
         ]
@@ -238,7 +238,7 @@ export const LESSON_2_GRAMMAR: GrammarExample[] = [
         englishPrimary: 'I see.',
         romajiPrimary: 'Sou desu ka.',
         tokens: [
-          { text: 'そう', type: 'noun' },
+          { text: 'そう', type: 'noun', note: 'So/That way (I see/Is that so?)' },
           { text: 'です', type: 'predicate' },
           { text: 'か', type: 'particle' },
         ]

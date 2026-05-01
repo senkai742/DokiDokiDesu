@@ -11,7 +11,6 @@ import { KanjiList } from '../screens/KanjiList';
 import { LessonMap } from '../screens/LessonMap';
 import { VocabPhase } from '../screens/VocabPhase';
 import { GrammarPhase } from '../screens/GrammarPhase';
-import { KanjiPhase } from '../screens/KanjiPhase';
 import { MasteryQuiz } from '../screens/MasteryQuiz';
 import { ReviewScreen } from '../screens/ReviewScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
@@ -36,11 +35,10 @@ export type RootStackParamList = {
   KanaSelection: undefined;
   KanaList: { type: 'hiragana' | 'katakana' };
   KanjiList: undefined;
-  LessonMap: { level: string; mode: 'vocab' | 'grammar' };
+  LessonMap: { level: string; mode: 'vocab' | 'grammar' | 'kanji' };
   VocabPhase: { lessonId: number };
   GrammarPhase: { lessonId: number };
-  KanjiPhase: { lessonId: number };
-  MasteryQuiz: { lessonId: number };
+  MasteryQuiz: { lessonId: number; mode: 'vocab' | 'grammar' | 'kanji' };
   StudyStreak: undefined;
   Search: undefined;
   WritingPractice: undefined;
@@ -118,7 +116,6 @@ export const AppNavigator = () => {
           <Stack.Screen name="LessonMap" component={LessonMap} />
           <Stack.Screen name="VocabPhase" component={VocabPhase} />
           <Stack.Screen name="GrammarPhase" component={GrammarPhase} />
-          <Stack.Screen name="KanjiPhase" component={KanjiPhase} />
           <Stack.Screen name="MasteryQuiz" component={MasteryQuiz} />
           <Stack.Screen name="StudyStreak" component={StudyStreakScreen} />
           <Stack.Screen name="Search" component={SearchScreen} />

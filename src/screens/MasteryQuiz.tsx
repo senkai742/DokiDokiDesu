@@ -13,8 +13,8 @@ import { DokiButton } from '../components/ui/DokiButton';
 export const MasteryQuiz: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'MasteryQuiz'>>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { lessonId } = route.params;
-  const { setLessonCompleted } = useStore();
+  const { lessonId, mode } = route.params;
+  const { setLessonCompleted, markVocabLearned, markGrammarLearned } = useStore();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -22,7 +22,21 @@ export const MasteryQuiz: React.FC = () => {
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
-  const questions = lesson1.quiz;
+  const questions = mode === 'vocab' ? lesson1.vocab.map(v => ({
+    id: v.id,
+    question: `What does "${v.kanji}" mean?`,
+    options: [v.english, 'Wrong 1', 'Wrong 2', 'Wrong 3'], // Simplified - should be randomized
+    correctAnswer: v.english,
+    type: 'multiple-choice' as const,
+  })) : mode === 'grammar' ? lesson1.grammar.flatMap(g => 
+    g.examples.map((ex, i) => ({
+      id: `${g.id}_ex${i}`,
+      question: `Translate: ${ex.english}`,
+      options: [ex.japanese, 'Wrong 1', 'Wrong 2', 'Wrong 3'],
+      correctAnswer: ex.japanese,
+      type: 'multiple-choice' as const,
+    }))
+  ) : lesson1.quiz;
   const currentQuestion = questions[currentIndex];
 
   const handleOptionPress = (option: string) => {
@@ -35,11 +49,27 @@ export const MasteryQuiz: React.FC = () => {
 
     setTimeout(() => {
       if (currentIndex < questions.length - 1) {
+        // Mark individual items as learned as user progresses
+        if (mode === 'vocab' && lesson1.vocab[currentIndex]) {
+          markVocabLearned(lesson1.vocab[currentIndex].id);
+        } else if (mode === 'grammar' && lesson1.grammar[0]?.examples[currentIndex]) {
+          markGrammarLearned(`${lesson1.grammar[0].id}_ex${currentIndex}`);
+        }
         setCurrentIndex(currentIndex + 1);
         setSelectedOption(null);
         setIsCorrect(null);
       } else {
         setIsFinished(true);
+        // Mark final item
+        if (mode === 'vocab' && lesson1.vocab[currentIndex]) {
+          markVocabLearned(lesson1.vocab[currentIndex].id);
+        } else if (mode === 'grammar') {
+          const gIndex = Math.floor(currentIndex / 2);
+          const exIndex = currentIndex % 2;
+          if (lesson1.grammar[gIndex]?.examples[exIndex]) {
+            markGrammarLearned(`${lesson1.grammar[gIndex].id}_ex${exIndex}`);
+          }
+        }
         if (score + (correct ? 1 : 0) === questions.length) {
           setLessonCompleted(lessonId);
         }
@@ -60,7 +90,7 @@ export const MasteryQuiz: React.FC = () => {
           
           <DokiButton 
             title={passed ? 'BACK TO MAP' : 'RETRY LESSON'}
-            onPress={() => navigation.navigate('LessonMap', { level: 'N5' })}
+            onPress={() => navigation.navigate('LessonMap', { level: 'N5', mode })}
             color={passed ? COLORS.primary : COLORS.secondary}
             style={styles.finishButton}
           />

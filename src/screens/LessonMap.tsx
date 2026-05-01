@@ -127,7 +127,9 @@ export const LessonMap: React.FC = () => {
                     onPress={() => 
                       mode === 'vocab' 
                         ? navigation.navigate('VocabPhase', { lessonId: lesson.id })
-                        : navigation.navigate('GrammarPhase', { lessonId: lesson.id })
+                        : mode === 'grammar'
+                        ? navigation.navigate('GrammarPhase', { lessonId: lesson.id })
+                        : undefined
                     }
                     style={[
                       styles.node,

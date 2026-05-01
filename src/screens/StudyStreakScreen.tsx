@@ -11,7 +11,9 @@ export const StudyStreakScreen: React.FC = () => {
   const navigation = useNavigation();
 
   const currentStreak = progress.streakDays;
-  const totalStudyTime = Math.floor(progress.studyMinutes / 60);
+  const totalHours = Math.floor(progress.studyMinutes / 60);
+  const totalMinutes = progress.studyMinutes % 60;
+  const totalStudyTimeDisplay = totalHours > 0 ? `${totalHours}h ${totalMinutes}m` : `${totalMinutes}m`;
   const today = new Date().toISOString().split('T')[0];
 
   // Generate last 30 days for heatmap
@@ -66,7 +68,7 @@ export const StudyStreakScreen: React.FC = () => {
           </View>
           <View style={[styles.statCard, { backgroundColor: '#4ECDC430' }]}>
             <Clock color="#4ECDC4" size={32} />
-            <Text style={styles.statValue}>{totalStudyTime}h</Text>
+            <Text style={styles.statValue}>{totalStudyTimeDisplay}</Text>
             <Text style={styles.statLabel}>Total Time</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: '#45B7D130' }]}>

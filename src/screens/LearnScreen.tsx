@@ -2,11 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../constants/theme';
-import { BentoTile } from '../components/ui/BentoTile';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { GraduationCap, BookOpen, MessageCircle, Pen } from 'lucide-react-native';
+import { MessageCircle, Pen, BookOpen, GraduationCap } from 'lucide-react-native';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -46,7 +45,7 @@ export const LearnScreen: React.FC = () => {
             </View>
             <View style={styles.categoryInfo}>
               <Text style={styles.categoryTitle}>VOCABULARY</Text>
-              <Text style={styles.categorySubtitle}>25 Lessons</Text>
+              <Text style={styles.categorySubtitle}>Individual Lessons</Text>
             </View>
           </TouchableOpacity>
 
@@ -60,7 +59,7 @@ export const LearnScreen: React.FC = () => {
             </View>
             <View style={styles.categoryInfo}>
               <Text style={styles.categoryTitle}>GRAMMAR</Text>
-              <Text style={styles.categorySubtitle}>Patterns & Rules</Text>
+              <Text style={styles.categorySubtitle}>Individual Lessons</Text>
             </View>
           </TouchableOpacity>
 
@@ -74,7 +73,7 @@ export const LearnScreen: React.FC = () => {
             </View>
             <View style={styles.categoryInfo}>
               <Text style={styles.categoryTitle}>KANJI</Text>
-              <Text style={styles.categorySubtitle}>N5 Characters</Text>
+              <Text style={styles.categorySubtitle}>Individual Study</Text>
             </View>
           </TouchableOpacity>
         </View>

@@ -100,8 +100,11 @@ export interface GlobalProgress {
   streakDays: number;
   lastActiveDate: string;
   kanjiMastered: number;
+  learnedKanjiIds: string[]; // Track specific kanji learned to prevent double-counting
   vocabLearned: number;
+  learnedVocabIds: string[]; // Track specific vocab learned
   grammarLearned: number;
+  learnedGrammarIds: string[]; // Track specific grammar learned
   favorites: string[];
   difficultWords: string[];
   studyMinutes: number;

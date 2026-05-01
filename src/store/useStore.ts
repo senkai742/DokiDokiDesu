@@ -21,6 +21,9 @@ interface AppState {
   incrementKanji: (count?: number) => void;
   incrementVocab: (count?: number) => void;
   incrementGrammar: (count?: number) => void;
+  markKanjiLearned: (kanjiId: string) => void;
+  markVocabLearned: (vocabId: string) => void;
+  markGrammarLearned: (grammarId: string) => void;
 }
 
 const initialState: GlobalProgress = {
@@ -32,8 +35,11 @@ const initialState: GlobalProgress = {
   streakDays: 0,
   lastActiveDate: '',
   kanjiMastered: 0,
+  learnedKanjiIds: [],
   vocabLearned: 0,
+  learnedVocabIds: [],
   grammarLearned: 0,
+  learnedGrammarIds: [],
   favorites: [],
   difficultWords: [],
   studyMinutes: 0,
@@ -129,6 +135,51 @@ export const useStore = create<AppState>()(
         set((state) => ({
           progress: { ...state.progress, kanjiMastered: state.progress.kanjiMastered + count }
         }));
+      },
+
+      markKanjiLearned: (kanjiId: string) => {
+        set((state) => {
+          if (state.progress.learnedKanjiIds.includes(kanjiId)) {
+            return state; // Already learned, don't double count
+          }
+          return {
+            progress: {
+              ...state.progress,
+              kanjiMastered: state.progress.kanjiMastered + 1,
+              learnedKanjiIds: [...state.progress.learnedKanjiIds, kanjiId],
+            }
+          };
+        });
+      },
+
+      markVocabLearned: (vocabId: string) => {
+        set((state) => {
+          if (state.progress.learnedVocabIds.includes(vocabId)) {
+            return state;
+          }
+          return {
+            progress: {
+              ...state.progress,
+              vocabLearned: state.progress.vocabLearned + 1,
+              learnedVocabIds: [...state.progress.learnedVocabIds, vocabId],
+            }
+          };
+        });
+      },
+
+      markGrammarLearned: (grammarId: string) => {
+        set((state) => {
+          if (state.progress.learnedGrammarIds.includes(grammarId)) {
+            return state;
+          }
+          return {
+            progress: {
+              ...state.progress,
+              grammarLearned: state.progress.grammarLearned + 1,
+              learnedGrammarIds: [...state.progress.learnedGrammarIds, grammarId],
+            }
+          };
+        });
       },
 
       incrementVocab: (count = 1) => {

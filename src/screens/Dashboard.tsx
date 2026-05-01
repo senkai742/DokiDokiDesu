@@ -67,7 +67,7 @@ type DashboardNavigationProp = CompositeNavigationProp<
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <SkeletonLoader width={120} height={16} style={{ marginBottom: SPACING.sm }} />
@@ -98,7 +98,7 @@ type DashboardNavigationProp = CompositeNavigationProp<
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.greeting}>おかえり (Welcome Back)</Text>
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: SPACING.md,
-    paddingBottom: SPACING.xl * 2,
+    paddingBottom: SPACING.md,
   },
   header: {
     marginBottom: SPACING.lg,

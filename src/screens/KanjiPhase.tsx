@@ -17,7 +17,7 @@ export const KanjiPhase: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'KanjiPhase'>>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { lessonId } = route.params;
-  const { setCurrentPhase } = useStore();
+  const { setCurrentPhase, markKanjiLearned } = useStore();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const kanji = lesson1.kanji;
@@ -56,6 +56,9 @@ export const KanjiPhase: React.FC = () => {
   };
 
   const handleNext = () => {
+    // Mark current kanji as learned when moving to next
+    markKanjiLearned(currentKanji.id);
+    
     if (currentIndex < kanji.length - 1) {
       setCurrentIndex(currentIndex + 1);
       rotate.value = 0;

@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, FlatList, TextInput, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../constants/theme';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -133,49 +132,49 @@ export const VocabPhase: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <ChevronLeft color={COLORS.accent} size={28} />
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <ChevronLeft color={COLORS.accent} size={28} />
+        </TouchableOpacity>
+        <View style={styles.modeToggle}>
+          <TouchableOpacity 
+            onPress={() => setViewMode('study')}
+            style={[styles.modeBtn, viewMode === 'study' && styles.activeModeBtn]}
+          >
+            <BookOpen size={20} color={viewMode === 'study' ? COLORS.background : COLORS.textSecondary} />
           </TouchableOpacity>
-          <View style={styles.modeToggle}>
-            <TouchableOpacity 
-              onPress={() => setViewMode('study')}
-              style={[styles.modeBtn, viewMode === 'study' && styles.activeModeBtn]}
-            >
-              <BookOpen size={20} color={viewMode === 'study' ? COLORS.background : COLORS.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={() => setViewMode('review')}
-              style={[styles.modeBtn, viewMode === 'review' && styles.activeModeBtn]}
-            >
-              <List size={20} color={viewMode === 'review' ? COLORS.background : COLORS.textSecondary} />
-            </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => setViewMode('review')}
+            style={[styles.modeBtn, viewMode === 'review' && styles.activeModeBtn]}
+          >
+            <List size={20} color={viewMode === 'review' ? COLORS.background : COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Batch Progress Segments */}
+      <View style={styles.progressSegments}>
+        {batches.map((_, idx) => (
+          <View 
+            key={idx} 
+            style={[
+              styles.segment, 
+              idx < activeBatchIndex && styles.segmentCompleted,
+              idx === activeBatchIndex && styles.segmentActive,
+            ]} 
+          >
+            {idx === activeBatchIndex && (
+              <View style={[styles.segmentFill, { width: `${((wordIndexInBatch + 1) / BATCH_SIZE) * 100}%` }]} />
+            )}
           </View>
-        </View>
+        ))}
+      </View>
 
-        {/* Batch Progress Segments */}
-        <View style={styles.progressSegments}>
-          {batches.map((_, idx) => (
-            <View 
-              key={idx} 
-              style={[
-                styles.segment, 
-                idx < activeBatchIndex && styles.segmentCompleted,
-                idx === activeBatchIndex && styles.segmentActive,
-              ]} 
-            >
-              {idx === activeBatchIndex && (
-                <View style={[styles.segmentFill, { width: `${((wordIndexInBatch + 1) / BATCH_SIZE) * 100}%` }]} />
-              )}
-            </View>
-          ))}
-        </View>
-
-        {viewMode === 'study' ? (
-          <View style={styles.studyView}>
+      {viewMode === 'study' ? (
+        <View style={styles.studyView}>
+          <View style={styles.contentArea}>
             <View style={styles.carouselContainer}>
               <FlipCard 
                 isFlipped={isFlipped}
@@ -225,92 +224,96 @@ export const VocabPhase: React.FC = () => {
                 {!['noun', 'verb', 'adjective', 'expression'].includes(currentWord.partOfSpeech) && 'Focus on the reading and meaning'}
               </Text>
             </View>
-
-            <View style={styles.footer}>
-              <Text style={styles.batchInfo}>BATCH {activeBatchIndex + 1} • {wordIndexInBatch + 1}/{BATCH_SIZE}</Text>
-              <View style={styles.buttonRow}>
-                <DokiButton 
-                  title="PREV"
-                  onPress={handlePrevWord}
-                  style={{ ...styles.navBtn, ...styles.prevBtn, opacity: (activeBatchIndex === 0 && wordIndexInBatch === 0) ? 0.5 : 1 }}
-                />
-                <DokiButton 
-                  title={
-                    activeBatchIndex === batches.length - 1 && wordIndexInBatch === currentBatch.length - 1 
-                      ? "FINISH" 
-                      : wordIndexInBatch === currentBatch.length - 1 
-                      ? "NEXT BATCH" 
-                      : "NEXT"
-                  } 
-                  onPress={handleNextWord}
-                  style={styles.navBtn}
-                />
-              </View>
-            </View>
-
-            {/* Congrats Modal */}
-            <Modal
-              visible={showCongrats}
-              transparent
-              animationType="fade"
-              onRequestClose={handleCongratsClose}
-            >
-              <View style={styles.modalOverlay}>
-                <View style={styles.congratsCard}>
-                  <Text style={styles.congratsEmoji}>🎉</Text>
-                  <Text style={styles.congratsTitle}>Lesson Complete!</Text>
-                  <Text style={styles.congratsSubtitle}>You've mastered {vocabData.length} words</Text>
-                  <Text style={styles.congratsUnlock}>Next lesson unlocked!</Text>
-                  <TouchableOpacity style={styles.congratsBtn} onPress={handleCongratsClose}>
-                    <Text style={styles.congratsBtnText}>Continue</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
           </View>
-        ) : (
-          <View style={styles.reviewView}>
-            <View style={styles.searchContainer}>
-              <Search size={20} color={COLORS.textSecondary} />
-              <TextInput 
-                style={styles.searchInput}
-                placeholder="Search seen words..."
-                placeholderTextColor={COLORS.textSecondary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
+
+          <View style={styles.footer}>
+            <Text style={styles.batchInfo}>BATCH {activeBatchIndex + 1} • {wordIndexInBatch + 1}/{BATCH_SIZE}</Text>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity 
+                onPress={handlePrevWord}
+                disabled={activeBatchIndex === 0 && wordIndexInBatch === 0}
+                style={[styles.navBtn, styles.prevBtn, (activeBatchIndex === 0 && wordIndexInBatch === 0) && styles.navBtnDisabled]}
+              >
+                <ChevronLeft color={(activeBatchIndex === 0 && wordIndexInBatch === 0) ? COLORS.textSecondary : COLORS.accent} size={24} />
+                <Text style={[styles.navBtnText, (activeBatchIndex === 0 && wordIndexInBatch === 0) && styles.navBtnTextDisabled]}>PREV</Text>
+                <View style={{ width: 24 }} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={handleNextWord}
+                style={[styles.navBtn, styles.nextBtn]}
+              >
+                <View style={{ width: 24 }} />
+                <Text style={styles.nextBtnText}>
+                  {activeBatchIndex === batches.length - 1 && wordIndexInBatch === currentBatch.length - 1 
+                    ? "FINISH" 
+                    : wordIndexInBatch === currentBatch.length - 1 
+                    ? "NEXT BATCH" 
+                    : "NEXT"}
+                </Text>
+                <ChevronRight color={COLORS.background} size={24} />
+              </TouchableOpacity>
             </View>
-            <FlatList 
-              data={filteredSeenWords}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.listContent}
-              renderItem={({ item }) => (
-                <View style={styles.listItem}>
-                  <View style={styles.listMain}>
-                    <Text style={styles.listKanji}>{item.kanji}</Text>
-                    <Text style={styles.listEnglish}>{item.english}</Text>
-                  </View>
-                  <TouchableOpacity style={styles.listAudio} onPress={() => tts.speak(item.kana, 'ja-JP')}>
-                    <Volume2 size={24} color={COLORS.primary} />
-                  </TouchableOpacity>
-                </View>
-              )}
+          </View>
+
+          {/* Congrats Modal */}
+          <Modal
+            visible={showCongrats}
+            transparent
+            animationType="fade"
+            onRequestClose={handleCongratsClose}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.congratsCard}>
+                <Text style={styles.congratsEmoji}>🎉</Text>
+                <Text style={styles.congratsTitle}>Lesson Complete!</Text>
+                <Text style={styles.congratsSubtitle}>You've mastered {vocabData.length} words</Text>
+                <Text style={styles.congratsUnlock}>Next lesson unlocked!</Text>
+                <TouchableOpacity style={styles.congratsBtn} onPress={handleCongratsClose}>
+                  <Text style={styles.congratsBtnText}>Continue</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </View>
+      ) : (
+        <View style={styles.reviewView}>
+          <View style={styles.searchContainer}>
+            <Search size={20} color={COLORS.textSecondary} />
+            <TextInput 
+              style={styles.searchInput}
+              placeholder="Search seen words..."
+              placeholderTextColor={COLORS.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
-        )}
-      </View>
-    </SafeAreaView>
+          <FlatList 
+            data={filteredSeenWords}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <View style={styles.listItem}>
+                <View style={styles.listMain}>
+                  <Text style={styles.listKanji}>{item.kanji}</Text>
+                  <Text style={styles.listEnglish}>{item.english}</Text>
+                </View>
+                <TouchableOpacity style={styles.listAudio} onPress={() => tts.speak(item.kana, 'ja-JP')}>
+                  <Volume2 size={24} color={COLORS.primary} />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        </View>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
   container: {
     flex: 1,
-    padding: SPACING.md,
+    backgroundColor: COLORS.background,
+    paddingTop: 40,
   },
   header: {
     flexDirection: 'row',
@@ -357,6 +360,7 @@ const styles = StyleSheet.create({
   },
   studyView: {
     flex: 1,
+    justifyContent: 'space-between',
   },
   carouselContainer: {
     flex: 1,
@@ -402,9 +406,17 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     borderRadius: 50,
   },
+  contentArea: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   footer: {
+    padding: SPACING.md,
     paddingBottom: SPACING.lg,
+    backgroundColor: COLORS.background,
     alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#222',
   },
   batchInfo: {
     color: COLORS.textSecondary,
@@ -412,9 +424,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1,
     marginBottom: SPACING.md,
-  },
-  nextBtn: {
-    width: '100%',
   },
   reviewView: {
     flex: 1,
@@ -507,13 +516,42 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     gap: SPACING.md,
-    justifyContent: 'center',
+    width: '100%',
   },
   navBtn: {
     flex: 1,
+    height: 56,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
+  },
+  navBtnDisabled: {
+    opacity: 0.5,
+  },
+  navBtnText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: COLORS.accent,
+    letterSpacing: 1,
+  },
+  navBtnTextDisabled: {
+    color: COLORS.textSecondary,
   },
   prevBtn: {
     backgroundColor: COLORS.gray,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  nextBtn: {
+    backgroundColor: COLORS.primary,
+  },
+  nextBtnText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: COLORS.background,
+    letterSpacing: 1,
   },
   modalOverlay: {
     flex: 1,

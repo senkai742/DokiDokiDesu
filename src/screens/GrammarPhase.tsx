@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions, Pressable, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Pressable, Modal } from 'react-native';
 import { COLORS, SPACING } from '../constants/theme';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -9,10 +9,7 @@ import Animated, {
   FadeOut, 
   SlideInRight, 
   SlideInLeft,
-  Layout,
-  useAnimatedStyle,
-  withSpring,
-  useSharedValue
+  Layout
 } from 'react-native-reanimated';
 import { ChevronLeft, Info, HelpCircle, ChevronRight, Zap } from 'lucide-react-native';
 import { DokiButton } from '../components/ui/DokiButton';
@@ -21,14 +18,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const { width } = Dimensions.get('window');
 
-const SyntaxText = ({ tokens, onNotePress }: { tokens: any[], onNotePress: (note: string) => void }) => {
+const SyntaxText = ({ tokens, onNotePress, isNegative }: { tokens: any[], onNotePress: (note: string) => void, isNegative: boolean }) => {
   return (
     <View style={styles.syntaxContainer}>
       {tokens.map((token, index) => {
+        const isFocus = token.note !== undefined;
         const color = 
-          token.type === 'noun' ? '#3399FF' :
-          token.type === 'particle' ? COLORS.secondary :
-          token.type === 'predicate' ? COLORS.primary :
+          isFocus ? '#3399FF' :
+          token.type === 'predicate' ? (isNegative ? COLORS.secondary : COLORS.primary) :
           COLORS.accent;
 
         return (
@@ -88,10 +85,11 @@ export const GrammarPhase: React.FC = () => {
   const [step, setStep] = useState(0);
   const [activeNote, setActiveNote] = useState<string | null>(null);
   const [showCongrats, setShowCongrats] = useState(false);
-  const isNegative = useSharedValue(false);
-  const toggleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: withSpring(isNegative.value ? 20 : 0) }]
-  }));
+  const [isNegativeState, setIsNegativeState] = useState(false);
+
+  const handleToggle = () => {
+    setIsNegativeState(!isNegativeState);
+  };
 
   const currentRule = grammarData[step];
 
@@ -104,7 +102,7 @@ export const GrammarPhase: React.FC = () => {
     incrementGrammar(1);
     if (step < grammarData.length - 1) {
       setStep(step + 1);
-      isNegative.value = false;
+      setIsNegativeState(false);
     } else {
       // Lesson Complete - show congrats modal
       setShowCongrats(true);
@@ -124,179 +122,186 @@ export const GrammarPhase: React.FC = () => {
   const handlePrev = () => {
     if (step > 0) {
       setStep(step - 1);
-      isNegative.value = false;
+      setIsNegativeState(false);
     } else {
       navigation.goBack();
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Header with Stepper */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handlePrev} style={styles.backBtn}>
-            <ChevronLeft color={COLORS.accent} size={28} />
-          </TouchableOpacity>
-          <View style={styles.stepper}>
-            {grammarData.map((_, idx) => (
-              <View 
-                key={idx} 
-                style={[
-                  styles.stepDot, 
-                  idx === step && styles.activeDot,
-                  idx < step && styles.completedDot
-                ]} 
-              />
+    <View style={styles.container}>
+      {/* Header with Stepper */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handlePrev} style={styles.backBtn}>
+          <ChevronLeft color={COLORS.accent} size={28} />
+        </TouchableOpacity>
+        <View style={styles.stepper}>
+          {grammarData.map((_, idx) => (
+            <View 
+              key={idx} 
+              style={[
+                styles.stepDot, 
+                idx === step && styles.activeDot,
+                idx < step && styles.completedDot
+              ]} 
+            />
+          ))}
+        </View>
+        <Text style={styles.stepInfo}>{step + 1} / {grammarData.length}</Text>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Formula Section */}
+        <Animated.View key={`formula-${step}`} entering={FadeIn.duration(600)} style={styles.formulaCard}>
+          <Text style={styles.formulaLabel}>SENTENCE ANATOMY</Text>
+          <View style={styles.formulaRow}>
+            {currentRule.formula.split(' + ').map((part, i) => (
+              <View key={i} style={styles.formulaPart}>
+                <Text style={styles.formulaText}>{part}</Text>
+              </View>
             ))}
           </View>
-          <Text style={styles.stepInfo}>{step + 1} / {grammarData.length}</Text>
-        </View>
+        </Animated.View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {/* Formula Section */}
-          <Animated.View key={`formula-${step}`} entering={FadeIn.duration(600)} style={styles.formulaCard}>
-            <Text style={styles.formulaLabel}>SENTENCE ANATOMY</Text>
-            <View style={styles.formulaRow}>
-              {currentRule.formula.split(' + ').map((part, i) => (
-                <View key={i} style={styles.formulaPart}>
-                  <Text style={styles.formulaText}>{part}</Text>
+        {/* Core Rule Card */}
+        <Animated.View key={`rule-${step}`} entering={SlideInRight.duration(500)} style={styles.ruleCard}>
+          <View style={styles.ruleHeader}>
+            <Zap size={24} color={COLORS.primary} fill={COLORS.primary} />
+            <Text style={styles.ruleTitle}>Rule {step + 1}</Text>
+          </View>
+          <Text style={styles.explanation}>{currentRule.explanation}</Text>
+
+          {/* Interactive Example */}
+          <View style={styles.exampleContainer}>
+            <View style={styles.exampleHeader}>
+              <Text style={styles.exampleLabel}>EXAMPLE</Text>
+              {currentRule.type === 'toggle' && (
+                <View style={styles.toggleWrapper}>
+                  <Text style={[styles.toggleText, !isNegativeState && styles.activeToggleText]}>POS</Text>
+                  <TouchableOpacity 
+                    style={[styles.toggle, { borderColor: isNegativeState ? COLORS.secondary : COLORS.gray }]}
+                    onPress={handleToggle}
+                  >
+                    <View style={[styles.toggleKnob, { transform: [{ translateX: isNegativeState ? 20 : 2 }], backgroundColor: isNegativeState ? COLORS.secondary : COLORS.primary }]} />
+                  </TouchableOpacity>
+                  <Text style={[styles.toggleText, isNegativeState && styles.activeToggleText]}>NEG</Text>
                 </View>
-              ))}
+              )}
             </View>
-          </Animated.View>
 
-          {/* Core Rule Card */}
-          <Animated.View key={`rule-${step}`} entering={SlideInRight.duration(500)} style={styles.ruleCard}>
-            <View style={styles.ruleHeader}>
-              <Zap size={24} color={COLORS.primary} fill={COLORS.primary} />
-              <Text style={styles.ruleTitle}>Rule {step + 1}</Text>
-            </View>
-            <Text style={styles.explanation}>{currentRule.explanation}</Text>
-
-            {/* Interactive Example */}
-            <View style={styles.exampleContainer}>
-              <View style={styles.exampleHeader}>
-                <Text style={styles.exampleLabel}>EXAMPLE</Text>
-                {currentRule.type === 'toggle' && (
-                  <View style={styles.toggleWrapper}>
-                    <Text style={[styles.toggleText, !isNegative.value && styles.activeToggleText]}>POS</Text>
-                    <TouchableOpacity 
-                      style={styles.toggle}
-                      onPress={() => isNegative.value = !isNegative.value}
-                    >
-                      <Animated.View style={[styles.toggleKnob, toggleStyle]} />
-                    </TouchableOpacity>
-                    <Text style={[styles.toggleText, isNegative.value && styles.activeToggleText]}>NEG</Text>
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.sentenceCard}>
-                {currentRule.type === 'table' && currentRule.table ? (
-                  <View style={styles.tableContainer}>
-                    <View style={styles.tableHeaderRow}>
-                      {currentRule.table.headers.map((header, hIdx) => (
-                        <View key={hIdx} style={styles.tableHeaderCell}>
-                          <Text style={styles.tableHeaderText}>{header}</Text>
-                        </View>
-                      ))}
-                    </View>
-                    {currentRule.table.rows.map((row, rIdx) => (
-                      <View key={rIdx} style={styles.tableRow}>
-                        {row.map((cell, cIdx) => (
-                          <View key={cIdx} style={[styles.tableCell, cIdx === 0 && styles.tableFirstCell]}>
-                            <Text style={[styles.tableCellText, cIdx === 0 && styles.tableFirstCellText]}>
-                              {cell}
-                            </Text>
-                          </View>
-                        ))}
+            <View style={styles.sentenceCard}>
+              {currentRule.type === 'table' && currentRule.table ? (
+                <View style={styles.tableContainer}>
+                  <View style={styles.tableHeaderRow}>
+                    {currentRule.table.headers.map((header, hIdx) => (
+                      <View key={hIdx} style={styles.tableHeaderCell}>
+                        <Text style={styles.tableHeaderText}>{header}</Text>
                       </View>
                     ))}
                   </View>
-                ) : (
-                  <>
-                    <SyntaxText 
-                      tokens={isNegative.value && example.tokensSecondary ? example.tokensSecondary : example.tokens} 
-                      onNotePress={setActiveNote}
-                    />
-                    <Animated.View entering={FadeIn.duration(300)}>
-                      <Text style={styles.englishText}>
-                        {isNegative.value ? example.englishSecondary : example.englishPrimary}
-                      </Text>
-                      <Text style={styles.romajiText}>
-                        {isNegative.value ? example.romajiSecondary : example.romajiPrimary}
-                      </Text>
-                    </Animated.View>
-                  </>
-                )}
-              </View>
-            </View>
-          </Animated.View>
-
-          <View style={styles.buttonRow}>
-            <DokiButton 
-              title="PREV"
-              onPress={handlePrev}
-              style={{ ...styles.navBtn, ...styles.prevBtn, opacity: step === 0 ? 0.5 : 1 }}
-            />
-            <DokiButton 
-              title={step === grammarData.length - 1 ? "FINISH" : "NEXT"}
-              onPress={handleNext}
-              style={styles.navBtn}
-            />
-          </View>
-        </ScrollView>
-
-        {/* Congrats Modal */}
-        <Modal
-          visible={showCongrats}
-          transparent
-          animationType="fade"
-          onRequestClose={handleCongratsClose}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.congratsCard}>
-              <Text style={styles.congratsEmoji}>🎉</Text>
-              <Text style={styles.congratsTitle}>Lesson Complete!</Text>
-              <Text style={styles.congratsSubtitle}>You've mastered {grammarData.length} grammar rules</Text>
-              <Text style={styles.congratsUnlock}>Next lesson unlocked!</Text>
-              <TouchableOpacity style={styles.congratsBtn} onPress={handleCongratsClose}>
-                <Text style={styles.congratsBtnText}>Continue</Text>
-              </TouchableOpacity>
+                  {currentRule.table.rows.map((row, rIdx) => (
+                    <View key={rIdx} style={styles.tableRow}>
+                      {row.map((cell, cIdx) => (
+                        <View key={cIdx} style={[styles.tableCell, cIdx === 0 && styles.tableFirstCell]}>
+                          <Text style={[styles.tableCellText, cIdx === 0 && styles.tableFirstCellText]}>
+                            {cell}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <>
+                  <SyntaxText 
+                    tokens={isNegativeState && example.tokensSecondary ? example.tokensSecondary : example.tokens} 
+                    onNotePress={setActiveNote}
+                    isNegative={isNegativeState}
+                  />
+                  <Animated.View entering={FadeIn.duration(300)}>
+                    <Text style={styles.englishText}>
+                      {isNegativeState ? example.englishSecondary : example.englishPrimary}
+                    </Text>
+                    <Text style={styles.romajiText}>
+                      {isNegativeState ? example.romajiSecondary : example.romajiPrimary}
+                    </Text>
+                  </Animated.View>
+                </>
+              )}
             </View>
           </View>
-        </Modal>
+        </Animated.View>
 
-        {/* Note Drawer Overlay */}
-        {activeNote && (
-          <Pressable style={styles.overlay} onPress={() => setActiveNote(null)}>
-            <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={styles.overlayBg} />
-            <Animated.View entering={SlideInRight.duration(300)} exiting={FadeOut.duration(200)} style={styles.noteDrawer}>
-              <View style={styles.noteHeader}>
-                <Info size={20} color={COLORS.primary} />
-                <Text style={styles.noteTitle}>GRAMMAR NOTE</Text>
-              </View>
-              <Text style={styles.noteContent}>{activeNote}</Text>
-              <TouchableOpacity style={styles.closeNote} onPress={() => setActiveNote(null)}>
-                <Text style={styles.closeNoteText}>GOT IT</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </Pressable>
-        )}
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity 
+            onPress={handlePrev}
+            disabled={step === 0}
+            style={[styles.navBtn, styles.prevBtn, step === 0 && styles.navBtnDisabled]}
+          >
+            <ChevronLeft color={step === 0 ? COLORS.textSecondary : COLORS.accent} size={24} />
+            <Text style={[styles.navBtnText, step === 0 && styles.navBtnTextDisabled]}>PREV</Text>
+            <View style={{ width: 24 }} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={handleNext}
+            style={[styles.navBtn, styles.nextBtn]}
+          >
+            <View style={{ width: 24 }} />
+            <Text style={styles.nextBtnText}>{step === grammarData.length - 1 ? "FINISH" : "NEXT"}</Text>
+            <ChevronRight color={COLORS.background} size={24} />
+          </TouchableOpacity>
+        </View>
       </View>
-    </SafeAreaView>
+
+      {/* Congrats Modal */}
+      <Modal
+        visible={showCongrats}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCongratsClose}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.congratsCard}>
+            <Text style={styles.congratsEmoji}>🎉</Text>
+            <Text style={styles.congratsTitle}>Lesson Complete!</Text>
+            <Text style={styles.congratsSubtitle}>You've mastered {grammarData.length} grammar rules</Text>
+            <Text style={styles.congratsUnlock}>Next lesson unlocked!</Text>
+            <TouchableOpacity style={styles.congratsBtn} onPress={handleCongratsClose}>
+              <Text style={styles.congratsBtnText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Note Drawer Overlay */}
+      {activeNote && (
+        <Pressable style={styles.overlay} onPress={() => setActiveNote(null)}>
+          <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={styles.overlayBg} />
+          <Animated.View entering={SlideInRight.duration(300)} exiting={FadeOut.duration(200)} style={styles.noteDrawer}>
+            <View style={styles.noteHeader}>
+              <Info size={20} color={COLORS.primary} />
+              <Text style={styles.noteTitle}>GRAMMAR NOTE</Text>
+            </View>
+            <Text style={styles.noteContent}>{activeNote}</Text>
+            <TouchableOpacity style={styles.closeNote} onPress={() => setActiveNote(null)}>
+              <Text style={styles.closeNoteText}>GOT IT</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </Pressable>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
   container: {
     flex: 1,
-    padding: SPACING.md,
+    backgroundColor: COLORS.background,
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
@@ -328,9 +333,6 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 12,
     fontWeight: '900',
-  },
-  scrollContent: {
-    paddingBottom: 40,
   },
   formulaCard: {
     backgroundColor: '#111',
@@ -411,13 +413,13 @@ const styles = StyleSheet.create({
     height: 24,
     backgroundColor: COLORS.background,
     borderRadius: 12,
-    padding: 2,
+    borderWidth: 2,
   },
   toggleKnob: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     backgroundColor: COLORS.primary,
-    borderRadius: 10,
+    borderRadius: 11,
   },
   toggleText: {
     fontSize: 10,
@@ -463,26 +465,56 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 4,
   },
+  scrollContent: {
+    padding: SPACING.md,
+    paddingBottom: 100,
+  },
+  footer: {
+    padding: SPACING.md,
+    paddingBottom: SPACING.lg,
+    backgroundColor: COLORS.background,
+    borderTopWidth: 1,
+    borderTopColor: '#222',
+  },
   buttonRow: {
     flexDirection: 'row',
     gap: SPACING.md,
-    marginTop: SPACING.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: SPACING.md,
+    width: '100%',
   },
   navBtn: {
     flex: 1,
+    height: 56,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
+  },
+  navBtnDisabled: {
+    opacity: 0.5,
+  },
+  navBtnText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: COLORS.accent,
+    letterSpacing: 1,
+  },
+  navBtnTextDisabled: {
+    color: COLORS.textSecondary,
   },
   prevBtn: {
-    flex: 1,
     backgroundColor: COLORS.gray,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
   },
   nextBtn: {
-    flex: 1,
+    backgroundColor: COLORS.primary,
   },
-  nextBtnCenter: {
-    flex: 1,
+  nextBtnText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: COLORS.background,
+    letterSpacing: 1,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
