@@ -29,9 +29,9 @@ export const SearchScreen: React.FC = () => {
 
     // Apply filter
     if (activeFilter === 'favorites') {
-      words = words.filter(w => progress.favorites.includes(w.id));
+      words = words.filter(w => progress.favorites?.includes(w.id) ?? false);
     } else if (activeFilter === 'difficult') {
-      words = words.filter(w => progress.difficultWords.includes(w.id));
+      words = words.filter(w => progress.difficultWords?.includes(w.id) ?? false);
     }
 
     // Apply search
@@ -76,7 +76,7 @@ export const SearchScreen: React.FC = () => {
 
   const toggleFavorite = (wordId: string, e: any) => {
     e.stopPropagation();
-    if (progress.favorites.includes(wordId)) {
+    if (progress.favorites?.includes(wordId) ?? false) {
       removeFavorite(wordId);
     } else {
       addFavorite(wordId);
@@ -85,7 +85,7 @@ export const SearchScreen: React.FC = () => {
 
   const toggleDifficult = (wordId: string, e: any) => {
     e.stopPropagation();
-    if (progress.difficultWords.includes(wordId)) {
+    if (progress.difficultWords?.includes(wordId) ?? false) {
       removeDifficultWord(wordId);
     } else {
       addDifficultWord(wordId);
@@ -178,8 +178,8 @@ export const SearchScreen: React.FC = () => {
               >
                 <Heart
                   size={20}
-                  color={progress.favorites.includes(word.id) ? '#FF6B6B' : COLORS.textSecondary}
-                  fill={progress.favorites.includes(word.id) ? '#FF6B6B' : 'transparent'}
+                  color={progress.favorites?.includes(word.id) ? '#FF6B6B' : COLORS.textSecondary}
+                  fill={progress.favorites?.includes(word.id) ? '#FF6B6B' : 'transparent'}
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -188,7 +188,7 @@ export const SearchScreen: React.FC = () => {
               >
                 <Brain
                   size={20}
-                  color={progress.difficultWords.includes(word.id) ? COLORS.primary : COLORS.textSecondary}
+                  color={progress.difficultWords?.includes(word.id) ? COLORS.primary : COLORS.textSecondary}
                 />
               </TouchableOpacity>
             </View>
@@ -250,28 +250,28 @@ export const SearchScreen: React.FC = () => {
 
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={[styles.modalActionBtn, progress.favorites.includes(selectedWord.id) && styles.modalActionActive]}
+                style={[styles.modalActionBtn, progress.favorites?.includes(selectedWord.id) && styles.modalActionActive]}
                 onPress={() => toggleFavorite(selectedWord.id, {})}
               >
                 <Heart
                   size={24}
-                  color={progress.favorites.includes(selectedWord.id) ? '#FF6B6B' : COLORS.accent}
-                  fill={progress.favorites.includes(selectedWord.id) ? '#FF6B6B' : 'transparent'}
+                  color={progress.favorites?.includes(selectedWord.id) ? '#FF6B6B' : COLORS.accent}
+                  fill={progress.favorites?.includes(selectedWord.id) ? '#FF6B6B' : 'transparent'}
                 />
                 <Text style={styles.modalActionText}>
-                  {progress.favorites.includes(selectedWord.id) ? 'Favorited' : 'Add to Favorites'}
+                  {progress.favorites?.includes(selectedWord.id) ? 'Favorited' : 'Add to Favorites'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalActionBtn, progress.difficultWords.includes(selectedWord.id) && styles.modalActionActive]}
+                style={[styles.modalActionBtn, progress.difficultWords?.includes(selectedWord.id) && styles.modalActionActive]}
                 onPress={() => toggleDifficult(selectedWord.id, {})}
               >
                 <Brain
                   size={24}
-                  color={progress.difficultWords.includes(selectedWord.id) ? COLORS.primary : COLORS.accent}
+                  color={progress.difficultWords?.includes(selectedWord.id) ? COLORS.primary : COLORS.accent}
                 />
                 <Text style={styles.modalActionText}>
-                  {progress.difficultWords.includes(selectedWord.id) ? 'Marked Difficult' : 'Mark as Difficult'}
+                  {progress.difficultWords?.includes(selectedWord.id) ? 'Marked Difficult' : 'Mark as Difficult'}
                 </Text>
               </TouchableOpacity>
             </View>

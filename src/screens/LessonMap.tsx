@@ -32,6 +32,10 @@ export const LessonMap: React.FC = () => {
   const { mode, level } = route.params;
   const { progress } = useStore();
   
+  // Use appropriate progress based on mode
+  const currentLessonId = mode === 'vocab' ? progress.currentVocabLessonId : progress.currentGrammarLessonId;
+  const completedLessons = mode === 'vocab' ? progress.completedVocabLessons : progress.completedGrammarLessons;
+  
   const lessons = useMemo(() => {
     let chapterOffset = 0;
     return Array.from({ length: 25 }, (_, i) => {
@@ -48,8 +52,8 @@ export const LessonMap: React.FC = () => {
       return {
         id,
         title: `Lesson ${id}`,
-        isLocked: id > progress.currentLessonId,
-        isCompleted: progress.completedLessons.includes(id),
+        isLocked: id > currentLessonId,
+        isCompleted: completedLessons?.includes(id) ?? false,
         x: leftOffset + NODE_SIZE / 2,
         y: topOffset + NODE_SIZE / 2,
         leftOffset,
@@ -57,7 +61,7 @@ export const LessonMap: React.FC = () => {
         chapter,
       };
     });
-  }, [progress.currentLessonId, progress.completedLessons]);
+  }, [currentLessonId, completedLessons]);
 
   const PulseCircle = ({ active, color }: { active: boolean; color: string }) => {
     const animatedStyle = useAnimatedStyle(() => ({
@@ -118,7 +122,7 @@ export const LessonMap: React.FC = () => {
                 <CircularProgress
                   size={100}
                   strokeWidth={4}
-                  progress={lesson.isCompleted ? 1 : lesson.id === progress.currentLessonId ? 0.3 : 0}
+                  progress={lesson.isCompleted ? 1 : lesson.id === currentLessonId ? 0.3 : 0}
                   color={lesson.chapter.color}
                   bgColor={COLORS.gray}
                 >
@@ -135,15 +139,15 @@ export const LessonMap: React.FC = () => {
                       styles.node,
                       { borderColor: lesson.isLocked ? COLORS.gray : lesson.chapter.color },
                       lesson.isCompleted && { backgroundColor: lesson.chapter.color },
-                      lesson.id === progress.currentLessonId && { backgroundColor: lesson.chapter.color },
+                      lesson.id === currentLessonId && { backgroundColor: lesson.chapter.color },
                       lesson.isLocked && styles.lockedNode,
                     ]}
                   >
-                    <PulseCircle active={lesson.id === progress.currentLessonId} color={lesson.chapter.color} />
+                    <PulseCircle active={lesson.id === currentLessonId} color={lesson.chapter.color} />
                     
                     {lesson.isCompleted ? (
                       <Check size={32} color={COLORS.background} strokeWidth={3} />
-                    ) : lesson.id === progress.currentLessonId ? (
+                    ) : lesson.id === currentLessonId ? (
                       <Star size={32} color={COLORS.background} fill={COLORS.background} />
                     ) : lesson.isLocked ? (
                       <Lock size={28} color={COLORS.textSecondary} />

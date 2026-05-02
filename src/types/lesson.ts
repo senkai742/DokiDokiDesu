@@ -92,21 +92,26 @@ export interface UserProgress {
 }
 
 export interface GlobalProgress {
-  completedLessons: number[];
-  currentLessonId: number;
-  currentPhase: LessonPhase;
+  // Vocab progress - completely independent
+  completedVocabLessons: number[];
+  currentVocabLessonId: number;
+  vocabLearned: number;
+  learnedVocabIds: string[];
+  // Grammar progress - completely independent
+  completedGrammarLessons: number[];
+  currentGrammarLessonId: number;
+  grammarLearned: number;
+  learnedGrammarIds: string[];
+  // Kanji - just a list, not lessons
+  kanjiMastered: number;
+  learnedKanjiIds: string[];
+  // General progress
   unlockedLevels: string[]; // ['N5', 'N4', etc.]
   hasCompletedOnboarding: boolean;
   streakDays: number;
   lastActiveDate: string;
-  kanjiMastered: number;
-  learnedKanjiIds: string[]; // Track specific kanji learned to prevent double-counting
-  vocabLearned: number;
-  learnedVocabIds: string[]; // Track specific vocab learned
-  grammarLearned: number;
-  learnedGrammarIds: string[]; // Track specific grammar learned
   favorites: string[];
   difficultWords: string[];
   studyMinutes: number;
-  studyHistory: { date: string; minutes: number; lessonsCompleted: number[] }[];
+  studyHistory: { date: string; minutes: number; vocabLessons: number[]; grammarLessons: number[] }[];
 }

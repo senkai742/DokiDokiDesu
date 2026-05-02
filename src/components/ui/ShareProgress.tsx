@@ -15,8 +15,9 @@ export const ShareProgress: React.FC<ShareProgressProps> = ({ isVisible, onClose
 
   const handleShare = async () => {
     try {
+      const totalLessons = (progress.completedVocabLessons?.length ?? 0) + (progress.completedGrammarLessons?.length ?? 0);
       const message = `🔥 ${progress.streakDays} Day Streak on DokiDoki Desu!\n\n` +
-        `📚 ${progress.completedLessons.length} Lessons Completed\n` +
+        `📚 ${totalLessons} Lessons Completed\n` +
         `🧠 ${progress.kanjiMastered} Kanji Mastered\n` +
         `📖 ${progress.vocabLearned} Words Learned\n\n` +
         `Join me in learning Japanese! 🇯🇵`;
@@ -72,7 +73,7 @@ export const ShareProgress: React.FC<ShareProgressProps> = ({ isVisible, onClose
               <View style={styles.statsGrid}>
                 <View style={styles.statBox}>
                   <Trophy size={24} color="#FFD700" />
-                  <Text style={styles.statNumber}>{progress.completedLessons.length}</Text>
+                  <Text style={styles.statNumber}>{(progress.completedVocabLessons?.length ?? 0) + (progress.completedGrammarLessons?.length ?? 0)}</Text>
                   <Text style={styles.statLabelSmall}>Lessons</Text>
                 </View>
                 <View style={styles.statBox}>

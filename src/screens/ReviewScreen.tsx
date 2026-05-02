@@ -133,7 +133,7 @@ export const ReviewScreen: React.FC = () => {
         >
           <AlertCircle size={16} color={reviewMode === 'difficult' ? COLORS.background : COLORS.accent} />
           <Text style={[styles.modeText, reviewMode === 'difficult' && styles.modeTextActive]}>
-            Difficult {progress.difficultWords.length > 0 && `(${progress.difficultWords.length})`}
+            Difficult {(progress.difficultWords?.length ?? 0) > 0 && `(${progress.difficultWords?.length ?? 0})`}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -142,7 +142,7 @@ export const ReviewScreen: React.FC = () => {
         >
           <Heart size={16} color={reviewMode === 'favorites' ? COLORS.background : COLORS.accent} />
           <Text style={[styles.modeText, reviewMode === 'favorites' && styles.modeTextActive]}>
-            Favorites {progress.favorites.length > 0 && `(${progress.favorites.length})`}
+            Favorites {(progress.favorites?.length ?? 0) > 0 && `(${progress.favorites?.length ?? 0})`}
           </Text>
         </TouchableOpacity>
       </View>

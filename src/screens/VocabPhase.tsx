@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, FlatList, TextInput, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../constants/theme';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -20,7 +21,7 @@ export const VocabPhase: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'VocabPhase'>>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { lessonId } = route.params;
-  const { setLessonCompleted, incrementVocab } = useStore();
+  const { completeVocabLesson, incrementVocab } = useStore();
 
   const vocabData = useMemo(() => {
     switch (lessonId) {
@@ -106,7 +107,7 @@ export const VocabPhase: React.FC = () => {
     } else {
       // Lesson Complete - show congrats modal
       setShowCongrats(true);
-      setLessonCompleted(lessonId);
+      completeVocabLesson(lessonId);
     }
   };
 
@@ -132,7 +133,7 @@ export const VocabPhase: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -305,7 +306,7 @@ export const VocabPhase: React.FC = () => {
           />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -313,7 +314,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingTop: 40,
   },
   header: {
     flexDirection: 'row',
@@ -369,36 +369,45 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.lg,
+    width: '100%',
   },
   kanjiLarge: {
-    fontSize: 80,
+    fontSize: 72,
     fontWeight: '900',
     color: COLORS.accent,
+    textAlign: 'center',
+    flexWrap: 'wrap',
   },
   kanaLarge: {
-    fontSize: 28,
+    fontSize: 24,
     color: COLORS.primary,
     marginTop: SPACING.md,
     fontWeight: '700',
+    textAlign: 'center',
   },
   tapToFlip: {
     position: 'absolute',
-    bottom: -60,
+    bottom: -50,
     color: COLORS.textSecondary,
     fontSize: 12,
     letterSpacing: 2,
     fontWeight: '900',
   },
   englishLarge: {
-    fontSize: 42,
+    fontSize: 32,
     fontWeight: '900',
     color: COLORS.secondary,
     textAlign: 'center',
+    flexWrap: 'wrap',
+    paddingHorizontal: SPACING.md,
   },
   romajiLarge: {
-    fontSize: 20,
+    fontSize: 18,
     color: COLORS.textSecondary,
-    marginTop: 10,
+    marginTop: SPACING.md,
+    textAlign: 'center',
   },
   audioIcon: {
     marginTop: 40,

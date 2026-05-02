@@ -31,7 +31,7 @@ export const StudyStreakScreen: React.FC = () => {
         dayNum: date.getDate(),
         minutes: studyEntry?.minutes || 0,
         hasStudied: !!studyEntry && studyEntry.minutes > 0,
-        lessonsCompleted: studyEntry?.lessonsCompleted.length || 0,
+        lessonsCompleted: ((studyEntry?.vocabLessons?.length ?? 0) + (studyEntry?.grammarLessons?.length ?? 0)) || 0,
       });
     }
     return days;
@@ -73,7 +73,7 @@ export const StudyStreakScreen: React.FC = () => {
           </View>
           <View style={[styles.statCard, { backgroundColor: '#45B7D130' }]}>
             <BookOpen color="#45B7D1" size={32} />
-            <Text style={styles.statValue}>{progress.completedLessons.length}</Text>
+            <Text style={styles.statValue}>{(progress.completedVocabLessons?.length ?? 0) + (progress.completedGrammarLessons?.length ?? 0)}</Text>
             <Text style={styles.statLabel}>Lessons</Text>
           </View>
         </View>
@@ -138,14 +138,14 @@ export const StudyStreakScreen: React.FC = () => {
                     })}
                   </Text>
                   <Text style={styles.activityDetails}>
-                    {entry.lessonsCompleted.length} lesson{entry.lessonsCompleted.length !== 1 ? 's' : ''} completed
+                    {(entry.vocabLessons?.length ?? 0) + (entry.grammarLessons?.length ?? 0)} lessons completed
                   </Text>
                 </View>
               </View>
               <Text style={styles.activityTime}>{entry.minutes} min</Text>
             </View>
           ))}
-          {progress.studyHistory.length === 0 && (
+          {(progress.studyHistory?.length ?? 0) === 0 && (
             <Text style={styles.noActivity}>No study sessions yet. Start learning today!</Text>
           )}
         </View>

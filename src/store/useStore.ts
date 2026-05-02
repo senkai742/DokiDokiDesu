@@ -6,15 +6,16 @@ import { LessonPhase, GlobalProgress } from '../types/lesson';
 interface AppState {
   progress: GlobalProgress;
   completeOnboarding: (knowsSomeJapanese: boolean) => void;
+  completeVocabLesson: (lessonId: number) => void;
+  completeGrammarLesson: (lessonId: number) => void;
+  setVocabLesson: (lessonId: number) => void;
+  setGrammarLesson: (lessonId: number) => void;
   addFavorite: (wordId: string) => void;
   removeFavorite: (wordId: string) => void;
   addDifficultWord: (wordId: string) => void;
   removeDifficultWord: (wordId: string) => void;
   recordStudyTime: (minutes: number) => void;
-  recordStudySession: (minutes: number, lessonId?: number) => void;
-  setLessonCompleted: (lessonId: number) => void;
-  setCurrentPhase: (phase: LessonPhase) => void;
-  setCurrentLesson: (lessonId: number) => void;
+  recordStudySession: (minutes: number, vocabLessonId?: number, grammarLessonId?: number) => void;
   unlockLevel: (level: string) => void;
   syncProgress: () => Promise<void>;
   recordActivity: () => void;
@@ -28,23 +29,28 @@ interface AppState {
 }
 
 const initialState: GlobalProgress = {
-  completedLessons: [],
-  currentLessonId: 1,
-  currentPhase: 'vocab',
+  // Vocab progress - completely independent
+  completedVocabLessons: [],
+  currentVocabLessonId: 1,
+  vocabLearned: 0,
+  learnedVocabIds: [],
+  // Grammar progress - completely independent
+  completedGrammarLessons: [],
+  currentGrammarLessonId: 1,
+  grammarLearned: 0,
+  learnedGrammarIds: [],
+  // Kanji - just a list, not lessons
+  kanjiMastered: 0,
+  learnedKanjiIds: [],
+  // General progress
   unlockedLevels: ['N5'],
   hasCompletedOnboarding: false,
   streakDays: 0,
   lastActiveDate: '',
-  kanjiMastered: 0,
-  learnedKanjiIds: [],
-  vocabLearned: 0,
-  learnedVocabIds: [],
-  grammarLearned: 0,
-  learnedGrammarIds: [],
   favorites: [],
   difficultWords: [],
   studyMinutes: 0,
-  studyHistory: [], // Array of {date: string, minutes: number, lessonsCompleted: number[]}
+  studyHistory: [],
 };
 
 export const useStore = create<AppState>()(
@@ -57,34 +63,47 @@ export const useStore = create<AppState>()(
           progress: {
             ...state.progress,
             hasCompletedOnboarding: true,
-            currentLessonId: knowsSomeJapanese ? 25 : 1, // Unlock all if they know some
-            completedLessons: knowsSomeJapanese 
+            currentVocabLessonId: knowsSomeJapanese ? 25 : 1,
+            currentGrammarLessonId: knowsSomeJapanese ? 25 : 1,
+            completedVocabLessons: knowsSomeJapanese 
+              ? Array.from({ length: 25 }, (_, i) => i + 1) 
+              : [],
+            completedGrammarLessons: knowsSomeJapanese 
               ? Array.from({ length: 25 }, (_, i) => i + 1) 
               : [],
           },
         }));
       },
 
-      setLessonCompleted: (lessonId: number) => {
+      completeVocabLesson: (lessonId: number) => {
         set((state) => ({
           progress: {
             ...state.progress,
-            completedLessons: [...new Set([...state.progress.completedLessons, lessonId])],
-            // Auto-unlock next lesson if it's the current one
-            currentLessonId: state.progress.currentLessonId === lessonId ? lessonId + 1 : state.progress.currentLessonId,
+            completedVocabLessons: [...new Set([...state.progress.completedVocabLessons, lessonId])],
+            currentVocabLessonId: state.progress.currentVocabLessonId === lessonId ? lessonId + 1 : state.progress.currentVocabLessonId,
           },
         }));
       },
 
-      setCurrentPhase: (phase: LessonPhase) => {
+      completeGrammarLesson: (lessonId: number) => {
         set((state) => ({
-          progress: { ...state.progress, currentPhase: phase },
+          progress: {
+            ...state.progress,
+            completedGrammarLessons: [...new Set([...state.progress.completedGrammarLessons, lessonId])],
+            currentGrammarLessonId: state.progress.currentGrammarLessonId === lessonId ? lessonId + 1 : state.progress.currentGrammarLessonId,
+          },
         }));
       },
 
-      setCurrentLesson: (lessonId: number) => {
+      setVocabLesson: (lessonId: number) => {
         set((state) => ({
-          progress: { ...state.progress, currentLessonId: lessonId },
+          progress: { ...state.progress, currentVocabLessonId: lessonId },
+        }));
+      },
+
+      setGrammarLesson: (lessonId: number) => {
+        set((state) => ({
+          progress: { ...state.progress, currentGrammarLessonId: lessonId },
         }));
       },
 
@@ -244,7 +263,7 @@ export const useStore = create<AppState>()(
         }));
       },
 
-      recordStudySession: (minutes: number, lessonId?: number) => {
+      recordStudySession: (minutes: number, vocabLessonId?: number, grammarLessonId?: number) => {
         set((state) => {
           const today = new Date().toISOString().split('T')[0];
           const existingEntry = state.progress.studyHistory.find(h => h.date === today);
@@ -253,11 +272,16 @@ export const useStore = create<AppState>()(
           if (existingEntry) {
             newHistory = state.progress.studyHistory.map(h =>
               h.date === today
-                ? { ...h, minutes: h.minutes + minutes, lessonsCompleted: lessonId ? [...new Set([...h.lessonsCompleted, lessonId])] : h.lessonsCompleted }
+                ? {
+                    ...h,
+                    minutes: h.minutes + minutes,
+                    vocabLessons: vocabLessonId ? [...new Set([...h.vocabLessons, vocabLessonId])] : h.vocabLessons,
+                    grammarLessons: grammarLessonId ? [...new Set([...h.grammarLessons, grammarLessonId])] : h.grammarLessons,
+                  }
                 : h
             );
           } else {
-            newHistory = [...state.progress.studyHistory, { date: today, minutes, lessonsCompleted: lessonId ? [lessonId] : [] }];
+            newHistory = [...state.progress.studyHistory, { date: today, minutes, vocabLessons: vocabLessonId ? [vocabLessonId] : [], grammarLessons: grammarLessonId ? [grammarLessonId] : [] }];
           }
           
           return {
@@ -273,6 +297,41 @@ export const useStore = create<AppState>()(
     {
       name: 'dokidoki-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 1,
+      migrate: (persistedState: any) => {
+        // Migration from old format to new format
+        if (persistedState?.progress?.completedLessons !== undefined) {
+          const oldProgress = persistedState.progress;
+          return {
+            ...persistedState,
+            progress: {
+              // Vocab progress
+              completedVocabLessons: oldProgress.completedLessons ?? [],
+              currentVocabLessonId: oldProgress.currentLessonId ?? 1,
+              vocabLearned: oldProgress.vocabLearned ?? 0,
+              learnedVocabIds: oldProgress.learnedVocabIds ?? [],
+              // Grammar progress
+              completedGrammarLessons: oldProgress.completedLessons ?? [],
+              currentGrammarLessonId: oldProgress.currentLessonId ?? 1,
+              grammarLearned: oldProgress.grammarLearned ?? 0,
+              learnedGrammarIds: oldProgress.learnedGrammarIds ?? [],
+              // Kanji
+              kanjiMastered: oldProgress.kanjiMastered ?? 0,
+              learnedKanjiIds: oldProgress.learnedKanjiIds ?? [],
+              // General
+              unlockedLevels: oldProgress.unlockedLevels ?? ['N5'],
+              hasCompletedOnboarding: oldProgress.hasCompletedOnboarding ?? false,
+              streakDays: oldProgress.streakDays ?? 0,
+              lastActiveDate: oldProgress.lastActiveDate ?? '',
+              favorites: oldProgress.favorites ?? [],
+              difficultWords: oldProgress.difficultWords ?? [],
+              studyMinutes: oldProgress.studyMinutes ?? 0,
+              studyHistory: oldProgress.studyHistory ?? [],
+            }
+          };
+        }
+        return persistedState ?? { progress: initialState };
+      },
     }
   )
 );

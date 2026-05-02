@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Pressable, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../constants/theme';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -49,7 +50,7 @@ export const GrammarPhase: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'GrammarPhase'>>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { lessonId } = route.params;
-  const { setCurrentPhase, setLessonCompleted, markGrammarLearned } = useStore();
+  const { completeGrammarLesson, markGrammarLearned } = useStore();
 
   const grammarData = useMemo(() => {
     switch (lessonId) {
@@ -106,7 +107,7 @@ export const GrammarPhase: React.FC = () => {
     } else {
       // Lesson Complete - show congrats modal
       setShowCongrats(true);
-      setLessonCompleted(lessonId);
+      completeGrammarLesson(lessonId);
     }
   };
 
@@ -129,7 +130,7 @@ export const GrammarPhase: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header with Stepper */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handlePrev} style={styles.backBtn}>
@@ -292,7 +293,7 @@ export const GrammarPhase: React.FC = () => {
           </Animated.View>
         </Pressable>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -300,8 +301,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingTop: 40,
-    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',

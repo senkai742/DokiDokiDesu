@@ -105,26 +105,79 @@ type DashboardNavigationProp = CompositeNavigationProp<
           <Text style={styles.title}>DOKI DOKI DESU</Text>
         </View>
 
-        {/* HERO CARD */}
-        <TouchableOpacity 
-          style={styles.heroCard}
-          activeOpacity={0.9}
-          onPress={() => navigation.navigate('Learn')}
-        >
-          <View style={styles.heroHeader}>
-            <Text style={styles.heroLabel}>CURRENT LESSON</Text>
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelText}>N5</Text>
+        {/* CONTINUE LEARNING - Unified Card */}
+        <Text style={styles.sectionTitle}>CONTINUE LEARNING</Text>
+
+        <View style={styles.continueCard}>
+          {/* Vocab Row */}
+          <TouchableOpacity
+            style={styles.continueRow}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('VocabPhase', { lessonId: progress.currentVocabLessonId })}
+          >
+            <View style={[styles.continueIcon, { backgroundColor: '#45B7D120' }]}>
+              <BookOpen color="#45B7D1" size={20} />
             </View>
-          </View>
-          <Text style={styles.heroTitle}>Lesson {progress.currentLessonId}</Text>
-          <Text style={styles.heroSubtitle}>Continue your journey</Text>
-          
-          <Animated.View style={[styles.playButton, pulseStyle]}>
-            <Play color={COLORS.background} size={24} fill={COLORS.background} />
-            <Text style={styles.playText}>CONTINUE</Text>
-          </Animated.View>
-        </TouchableOpacity>
+            <View style={styles.continueInfo}>
+              <Text style={styles.continueLabel}>Vocabulary</Text>
+              <Text style={styles.continueLesson}>Lesson {progress.currentVocabLessonId}</Text>
+            </View>
+            <View style={styles.continueProgress}>
+              <View style={[styles.continueProgressBar, { backgroundColor: '#333' }]}>
+                <View style={[styles.continueProgressFill, { width: `${(progress.completedVocabLessons?.length ?? 0 / 25) * 100}%`, backgroundColor: '#45B7D1' }]} />
+              </View>
+            </View>
+            <Play color="#45B7D1" size={18} />
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.continueDivider} />
+
+          {/* Grammar Row */}
+          <TouchableOpacity
+            style={styles.continueRow}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('GrammarPhase', { lessonId: progress.currentGrammarLessonId })}
+          >
+            <View style={[styles.continueIcon, { backgroundColor: `${COLORS.secondary}20` }]}>
+              <GraduationCap color={COLORS.secondary} size={20} />
+            </View>
+            <View style={styles.continueInfo}>
+              <Text style={styles.continueLabel}>Grammar</Text>
+              <Text style={styles.continueLesson}>Lesson {progress.currentGrammarLessonId}</Text>
+            </View>
+            <View style={styles.continueProgress}>
+              <View style={[styles.continueProgressBar, { backgroundColor: '#333' }]}>
+                <View style={[styles.continueProgressFill, { width: `${(progress.completedGrammarLessons?.length ?? 0 / 25) * 100}%`, backgroundColor: COLORS.secondary }]} />
+              </View>
+            </View>
+            <Play color={COLORS.secondary} size={18} />
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.continueDivider} />
+
+          {/* Kanji Row */}
+          <TouchableOpacity
+            style={styles.continueRow}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('KanjiList')}
+          >
+            <View style={[styles.continueIcon, { backgroundColor: '#4ECDC420' }]}>
+              <PenTool color="#4ECDC4" size={20} />
+            </View>
+            <View style={styles.continueInfo}>
+              <Text style={styles.continueLabel}>Kanji</Text>
+              <Text style={styles.continueLesson}>{progress.kanjiMastered} / {KANJI_DATA.length} Learned</Text>
+            </View>
+            <View style={styles.continueProgress}>
+              <View style={[styles.continueProgressBar, { backgroundColor: '#333' }]}>
+                <View style={[styles.continueProgressFill, { width: `${(progress.kanjiMastered / KANJI_DATA.length) * 100}%`, backgroundColor: '#4ECDC4' }]} />
+              </View>
+            </View>
+            <Play color="#4ECDC4" size={18} />
+          </TouchableOpacity>
+        </View>
 
         {/* STATS ROW */}
         <View style={styles.row}>
@@ -221,7 +274,7 @@ type DashboardNavigationProp = CompositeNavigationProp<
         <StudyTimer 
           isVisible={showTimer} 
           onClose={() => setShowTimer(false)} 
-          lessonId={progress.currentLessonId}
+          lessonId={progress.currentVocabLessonId}
         />
         <ShareProgress 
           isVisible={showShare} 
@@ -415,6 +468,57 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     marginBottom: SPACING.md,
     marginTop: SPACING.md,
+  },
+  continueCard: {
+    backgroundColor: COLORS.gray,
+    borderRadius: 20,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  continueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+  },
+  continueIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  continueInfo: {
+    marginLeft: SPACING.md,
+    flex: 1,
+  },
+  continueLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  continueLesson: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.accent,
+    marginTop: 2,
+  },
+  continueProgress: {
+    width: 60,
+    marginRight: SPACING.md,
+  },
+  continueProgressBar: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  continueProgressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  continueDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginVertical: SPACING.xs,
   },
   toolsGrid: {
     flexDirection: 'row',

@@ -31,9 +31,10 @@ export const ProfileScreen: React.FC = () => {
   const [darkMode, setDarkMode] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // Calculate N5 progress (25 lessons total)
-  const n5Progress = progress.completedLessons.length / 25;
-  const currentLevel = progress.unlockedLevels[progress.unlockedLevels.length - 1];
+  // Calculate N5 progress - combine vocab and grammar completion
+  const completedLessons = Math.max(progress.completedVocabLessons?.length ?? 0, progress.completedGrammarLessons?.length ?? 0);
+  const n5Progress = completedLessons / 25;
+  const currentLevel = progress.unlockedLevels?.[progress.unlockedLevels.length - 1] ?? 'N5';
 
   const handleResetProgress = () => {
     Alert.alert(
@@ -115,7 +116,7 @@ export const ProfileScreen: React.FC = () => {
             </CircularProgress>
             <View style={styles.progressInfo}>
               <Text style={styles.progressText}>
-                {progress.completedLessons.length} of 25 Lessons
+                {completedLessons} of 25 Lessons
               </Text>
               <Text style={styles.progressSubtitle}>
                 {Math.round(n5Progress * 100)}% Complete
@@ -165,26 +166,26 @@ export const ProfileScreen: React.FC = () => {
 
             <View style={[
               styles.achievementCard,
-              progress.completedLessons.length >= 5 && styles.achievementUnlocked
+              completedLessons >= 5 && styles.achievementUnlocked
             ]}>
-              <BookOpen size={32} color={progress.completedLessons.length >= 5 ? '#4ECDC4' : COLORS.gray} />
+              <BookOpen size={32} color={completedLessons >= 5 ? '#4ECDC4' : COLORS.gray} />
               <View style={styles.achievementInfo}>
                 <Text style={styles.achievementTitle}>Getting Started</Text>
                 <Text style={styles.achievementDesc}>Complete 5 lessons</Text>
               </View>
-              {progress.completedLessons.length >= 5 && <Award size={20} color={COLORS.primary} />}
+              {completedLessons >= 5 && <Award size={20} color={COLORS.primary} />}
             </View>
 
             <View style={[
               styles.achievementCard,
-              progress.completedLessons.length >= 25 && styles.achievementUnlocked
+              completedLessons >= 25 && styles.achievementUnlocked
             ]}>
-              <Trophy size={32} color={progress.completedLessons.length >= 25 ? '#FFD700' : COLORS.gray} />
+              <Trophy size={32} color={completedLessons >= 25 ? '#FFD700' : COLORS.gray} />
               <View style={styles.achievementInfo}>
                 <Text style={styles.achievementTitle}>N5 Master</Text>
                 <Text style={styles.achievementDesc}>Complete all lessons</Text>
               </View>
-              {progress.completedLessons.length >= 25 && <Award size={20} color={COLORS.primary} />}
+              {completedLessons >= 25 && <Award size={20} color={COLORS.primary} />}
             </View>
           </View>
         </View>
