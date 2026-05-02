@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const apkBtn = document.getElementById('apk-download-btn');
     if (apkBtn) {
         apkBtn.addEventListener('click', (e) => {
-            e.preventDefault();
+           
             const originalText = apkBtn.textContent;
             apkBtn.textContent = 'Downloading...';
             apkBtn.style.backgroundColor = 'var(--color-accent)';
