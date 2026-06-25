@@ -9,7 +9,7 @@ import { LESSON_1_VOCAB, LESSON_2_VOCAB, LESSON_3_VOCAB, LESSON_4_VOCAB, LESSON_
 import { FlipCard } from '../components/ui/FlipCard';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
 import Animated, { useAnimatedStyle, withSpring, withRepeat } from 'react-native-reanimated';
-import { ChevronLeft, Volume2, Search, BookOpen, List, ChevronRight, Lightbulb, RotateCcw } from 'lucide-react-native';
+import { ChevronLeft, Volume2, Search, BookOpen, List, ChevronRight, Lightbulb, RotateCcw, LayoutGrid } from 'lucide-react-native';
 import { DokiButton } from '../components/ui/DokiButton';
 import { tts } from '../utils/tts';
 import { useStore } from '../store/useStore';
@@ -53,7 +53,7 @@ export const VocabPhase: React.FC = () => {
     }
   }, [lessonId]);
 
-  const [viewMode, setViewMode] = useState<'study' | 'review'>('study');
+  const [viewMode, setViewMode] = useState<'study' | 'review' | 'grid'>('study');
   const [activeBatchIndex, setActiveBatchIndex] = useState(0);
   const [wordIndexInBatch, setWordIndexInBatch] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -151,6 +151,12 @@ export const VocabPhase: React.FC = () => {
             style={[styles.modeBtn, viewMode === 'review' && styles.activeModeBtn]}
           >
             <List size={20} color={viewMode === 'review' ? COLORS.background : COLORS.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => setViewMode('grid')}
+            style={[styles.modeBtn, viewMode === 'grid' && styles.activeModeBtn]}
+          >
+            <LayoutGrid size={20} color={viewMode === 'grid' ? COLORS.background : COLORS.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -276,7 +282,7 @@ export const VocabPhase: React.FC = () => {
             </View>
           </Modal>
         </View>
-      ) : (
+      ) : viewMode === 'review' ? (
         <View style={styles.reviewView}>
           <View style={styles.searchContainer}>
             <Search size={20} color={COLORS.textSecondary} />
@@ -288,7 +294,8 @@ export const VocabPhase: React.FC = () => {
               onChangeText={setSearchQuery}
             />
           </View>
-          <FlatList 
+          <FlatList
+            key="review-list"
             data={filteredSeenWords}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
@@ -301,6 +308,36 @@ export const VocabPhase: React.FC = () => {
                 <TouchableOpacity style={styles.listAudio} onPress={() => tts.speak(item.kana, 'ja-JP')}>
                   <Volume2 size={24} color={COLORS.primary} />
                 </TouchableOpacity>
+              </View>
+            )}
+          />
+        </View>
+      ) : (
+        <View style={styles.gridView}>
+          <View style={styles.gridHeader}>
+            <Text style={styles.gridTitle}>ALL WORDS</Text>
+            <Text style={styles.gridCount}>{vocabData.length} vocab</Text>
+          </View>
+          <FlatList
+            key="grid-list"
+            data={vocabData}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={styles.gridContent}
+            columnWrapperStyle={styles.gridRow}
+            renderItem={({ item, index }) => (
+              <View style={styles.gridCard}>
+                <View style={styles.gridCardTop}>
+                  <Text style={styles.gridIndex}>{index + 1}</Text>
+                  <TouchableOpacity onPress={() => tts.speak(item.kana, 'ja-JP')} style={styles.gridAudioBtn}>
+                    <Volume2 size={14} color={COLORS.primary} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.gridKanji} numberOfLines={1} adjustsFontSizeToFit>{item.kanji}</Text>
+                <Text style={styles.gridKana} numberOfLines={1}>{item.kana}</Text>
+                <View style={styles.gridDivider} />
+                <Text style={styles.gridEnglish} numberOfLines={2}>{item.english}</Text>
+                <Text style={styles.gridPos}>{item.partOfSpeech}</Text>
               </View>
             )}
           />
@@ -480,6 +517,90 @@ const styles = StyleSheet.create({
   },
   listAudio: {
     padding: 8,
+  },
+  // Grid View
+  gridView: {
+    flex: 1,
+  },
+  gridHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+    paddingHorizontal: 2,
+  },
+  gridTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: COLORS.textSecondary,
+    letterSpacing: 2,
+  },
+  gridCount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.primary,
+    letterSpacing: 1,
+  },
+  gridContent: {
+    paddingBottom: 20,
+  },
+  gridRow: {
+    gap: 10,
+    marginBottom: 10,
+  },
+  gridCard: {
+    flex: 1,
+    backgroundColor: COLORS.gray,
+    borderRadius: 14,
+    padding: SPACING.md,
+    minHeight: 130,
+    justifyContent: 'space-between',
+  },
+  gridCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  gridIndex: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#444',
+    letterSpacing: 1,
+  },
+  gridAudioBtn: {
+    padding: 4,
+  },
+  gridKanji: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: COLORS.accent,
+    marginBottom: 2,
+  },
+  gridKana: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '600',
+    marginBottom: SPACING.sm,
+  },
+  gridDivider: {
+    height: 1,
+    backgroundColor: '#2A2A2A',
+    marginBottom: SPACING.sm,
+  },
+  gridEnglish: {
+    fontSize: 13,
+    color: COLORS.accent,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  gridPos: {
+    fontSize: 10,
+    color: '#555',
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginTop: 4,
+    textTransform: 'uppercase',
   },
   prevWordContainer: {
     backgroundColor: COLORS.gray,
