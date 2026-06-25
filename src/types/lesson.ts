@@ -91,6 +91,14 @@ export interface UserProgress {
   lastAccessed: string;
 }
 
+export interface Collection {
+  id: string;
+  name: string;
+  emoji: string;
+  wordIds: string[]; // prefixed as "L{lessonId}_{wordId}" for global uniqueness
+  createdAt: string;
+}
+
 export interface GlobalProgress {
   // Vocab progress - completely independent
   completedVocabLessons: number[];
@@ -110,8 +118,9 @@ export interface GlobalProgress {
   hasCompletedOnboarding: boolean;
   streakDays: number;
   lastActiveDate: string;
-  favorites: string[];
+  favorites: string[]; // global word IDs: "L{lessonId}_{wordId}"
   difficultWords: string[];
   studyMinutes: number;
   studyHistory: { date: string; minutes: number; vocabLessons: number[]; grammarLessons: number[] }[];
+  collections: Collection[];
 }

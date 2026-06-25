@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, FlatList, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, FlatList, TextInput, Modal, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../constants/theme';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
@@ -9,10 +9,11 @@ import { LESSON_1_VOCAB, LESSON_2_VOCAB, LESSON_3_VOCAB, LESSON_4_VOCAB, LESSON_
 import { FlipCard } from '../components/ui/FlipCard';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
 import Animated, { useAnimatedStyle, withSpring, withRepeat } from 'react-native-reanimated';
-import { ChevronLeft, Volume2, Search, BookOpen, List, ChevronRight, Lightbulb, RotateCcw, LayoutGrid } from 'lucide-react-native';
+import { ChevronLeft, Volume2, Search, BookOpen, List, ChevronRight, Lightbulb, RotateCcw, LayoutGrid, Heart, FolderPlus, Check, X } from 'lucide-react-native';
 import { DokiButton } from '../components/ui/DokiButton';
 import { tts } from '../utils/tts';
 import { useStore } from '../store/useStore';
+import { makeGlobalWordId } from '../utils/vocabLookup';
 
 const { width } = Dimensions.get('window');
 const BATCH_SIZE = 10;
@@ -21,7 +22,31 @@ export const VocabPhase: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'VocabPhase'>>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { lessonId } = route.params;
-  const { completeVocabLesson, incrementVocab } = useStore();
+  const { completeVocabLesson, incrementVocab, addFavorite, removeFavorite, addWordToCollection, progress } = useStore();
+
+  // Collection picker modal state
+  const [collectionPickerWordId, setCollectionPickerWordId] = useState<string | null>(null);
+
+  const collections = progress.collections ?? [];
+  const favorites = progress.favorites ?? [];
+
+  const toggleFavorite = (globalId: string) => {
+    if (favorites.includes(globalId)) {
+      removeFavorite(globalId);
+    } else {
+      addFavorite(globalId);
+    }
+  };
+
+  const openCollectionPicker = (globalId: string) => {
+    setCollectionPickerWordId(globalId);
+  };
+
+  const handleAddToCollection = (collectionId: string) => {
+    if (!collectionPickerWordId) return;
+    addWordToCollection(collectionId, collectionPickerWordId);
+    setCollectionPickerWordId(null);
+  };
 
   const vocabData = useMemo(() => {
     switch (lessonId) {
@@ -245,6 +270,19 @@ export const VocabPhase: React.FC = () => {
                 <Text style={[styles.navBtnText, (activeBatchIndex === 0 && wordIndexInBatch === 0) && styles.navBtnTextDisabled]}>PREV</Text>
                 <View style={{ width: 24 }} />
               </TouchableOpacity>
+
+              {/* Favourite button */}
+              <TouchableOpacity
+                onPress={() => toggleFavorite(makeGlobalWordId(lessonId, currentWord.id))}
+                style={styles.heartBtn}
+              >
+                <Heart
+                  size={22}
+                  color="#FF4D6D"
+                  fill={favorites.includes(makeGlobalWordId(lessonId, currentWord.id)) ? '#FF4D6D' : 'transparent'}
+                />
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 onPress={handleNextWord}
                 style={[styles.navBtn, styles.nextBtn]}
@@ -325,24 +363,92 @@ export const VocabPhase: React.FC = () => {
             numColumns={2}
             contentContainerStyle={styles.gridContent}
             columnWrapperStyle={styles.gridRow}
-            renderItem={({ item, index }) => (
-              <View style={styles.gridCard}>
-                <View style={styles.gridCardTop}>
-                  <Text style={styles.gridIndex}>{index + 1}</Text>
-                  <TouchableOpacity onPress={() => tts.speak(item.kana, 'ja-JP')} style={styles.gridAudioBtn}>
-                    <Volume2 size={14} color={COLORS.primary} />
-                  </TouchableOpacity>
+            renderItem={({ item, index }) => {
+              const globalId = makeGlobalWordId(lessonId, item.id);
+              const isFav = favorites.includes(globalId);
+              return (
+                <View style={styles.gridCard}>
+                  <View style={styles.gridCardTop}>
+                    <Text style={styles.gridIndex}>{index + 1}</Text>
+                    <View style={styles.gridCardBtns}>
+                      <TouchableOpacity
+                        onPress={() => tts.speak(item.kana, 'ja-JP')}
+                        style={styles.gridAudioBtn}
+                      >
+                        <Volume2 size={13} color={COLORS.primary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => toggleFavorite(globalId)}
+                        onLongPress={() => openCollectionPicker(globalId)}
+                        style={styles.gridAudioBtn}
+                        delayLongPress={400}
+                      >
+                        <Heart
+                          size={13}
+                          color="#FF4D6D"
+                          fill={isFav ? '#FF4D6D' : 'transparent'}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <Text style={styles.gridKanji} numberOfLines={1} adjustsFontSizeToFit>{item.kanji}</Text>
+                  <Text style={styles.gridKana} numberOfLines={1}>{item.kana}</Text>
+                  <View style={styles.gridDivider} />
+                  <Text style={styles.gridEnglish} numberOfLines={2}>{item.english}</Text>
+                  <Text style={styles.gridPos}>{item.partOfSpeech}</Text>
                 </View>
-                <Text style={styles.gridKanji} numberOfLines={1} adjustsFontSizeToFit>{item.kanji}</Text>
-                <Text style={styles.gridKana} numberOfLines={1}>{item.kana}</Text>
-                <View style={styles.gridDivider} />
-                <Text style={styles.gridEnglish} numberOfLines={2}>{item.english}</Text>
-                <Text style={styles.gridPos}>{item.partOfSpeech}</Text>
-              </View>
-            )}
+              );
+            }}
           />
         </View>
       )}
+
+      {/* Collection Picker Modal (long-press on ♥) */}
+      <Modal
+        visible={!!collectionPickerWordId}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCollectionPickerWordId(null)}
+      >
+        <TouchableOpacity
+          style={styles.pickerOverlay}
+          activeOpacity={1}
+          onPress={() => setCollectionPickerWordId(null)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.pickerSheet}>
+            <View style={styles.pickerHandle} />
+            <Text style={styles.pickerTitle}>Add to Collection</Text>
+            {collections.length === 0 ? (
+              <View style={styles.pickerEmpty}>
+                <Text style={styles.pickerEmptyText}>
+                  No collections yet. Go to Review → Collections to create one.
+                </Text>
+              </View>
+            ) : (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {collections.map(col => {
+                  const alreadyIn = col.wordIds.includes(collectionPickerWordId ?? '');
+                  return (
+                    <TouchableOpacity
+                      key={col.id}
+                      style={[styles.pickerItem, alreadyIn && styles.pickerItemActive]}
+                      onPress={() => !alreadyIn && handleAddToCollection(col.id)}
+                      disabled={alreadyIn}
+                    >
+                      <Text style={styles.pickerEmoji}>{col.emoji}</Text>
+                      <View style={styles.pickerItemMeta}>
+                        <Text style={styles.pickerItemName}>{col.name}</Text>
+                        <Text style={styles.pickerItemCount}>{col.wordIds.length} words</Text>
+                      </View>
+                      {alreadyIn && <Check size={18} color={COLORS.primary} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -570,6 +676,89 @@ const styles = StyleSheet.create({
   },
   gridAudioBtn: {
     padding: 4,
+  },
+  gridCardBtns: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  // Heart button in study footer
+  heartBtn: {
+    width: 48,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: '#1A0A0D',
+    borderWidth: 2,
+    borderColor: '#3D1520',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Collection picker modal
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  pickerSheet: {
+    backgroundColor: '#161616',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: SPACING.lg,
+    paddingBottom: 40,
+    maxHeight: '70%',
+  },
+  pickerHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#333',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: SPACING.md,
+  },
+  pickerTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: COLORS.accent,
+    marginBottom: SPACING.md,
+  },
+  pickerEmpty: {
+    paddingVertical: SPACING.xl,
+    alignItems: 'center',
+  },
+  pickerEmptyText: {
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  pickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: 14,
+    marginBottom: 4,
+  },
+  pickerItemActive: {
+    backgroundColor: COLORS.primary + '18',
+  },
+  pickerEmoji: {
+    fontSize: 26,
+    width: 36,
+    textAlign: 'center',
+  },
+  pickerItemMeta: {
+    flex: 1,
+  },
+  pickerItemName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.accent,
+  },
+  pickerItemCount: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
   gridKanji: {
     fontSize: 28,

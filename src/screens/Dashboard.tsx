@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../constants/theme';
 import { useStore } from '../store/useStore';
-import { Flame, BookOpen, Brain, Play, Sparkles, Search, PenTool, Calendar, Clock, Share2, GraduationCap } from 'lucide-react-native';
+import { Flame, BookOpen, Brain, Play, Sparkles, Search, PenTool, Calendar, Share2, GraduationCap, FolderOpen } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -12,7 +12,6 @@ import { CompositeNavigationProp } from '@react-navigation/native';
 import { KANJI_DATA } from '../constants/kanji';
 import Animated, { useAnimatedStyle, withRepeat, withTiming, useSharedValue } from 'react-native-reanimated';
 import { SkeletonLoader } from '../components/ui/SkeletonLoader';
-import { StudyTimer } from '../components/ui/StudyTimer';
 import { ShareProgress } from '../components/ui/ShareProgress';
 
 const FACTS = [
@@ -32,7 +31,6 @@ type DashboardNavigationProp = CompositeNavigationProp<
   const navigation = useNavigation<DashboardNavigationProp>();
   const { progress } = useStore();
   const [isLoading, setIsLoading] = useState(true);
-  const [showTimer, setShowTimer] = useState(false);
   const [showShare, setShowShare] = useState(false);
 
   useEffect(() => {
@@ -251,10 +249,10 @@ type DashboardNavigationProp = CompositeNavigationProp<
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.toolBox} 
-            onPress={() => setShowTimer(true)}
+            onPress={() => navigation.navigate('Collections')}
           >
-            <Clock color="#4ECDC4" size={28} />
-            <Text style={styles.toolTitle}>Timer</Text>
+            <FolderOpen color="#C084FC" size={28} />
+            <Text style={styles.toolTitle}>Collections</Text>
           </TouchableOpacity>
         </View>
 
@@ -271,11 +269,6 @@ type DashboardNavigationProp = CompositeNavigationProp<
         </View>
 
         {/* Modals */}
-        <StudyTimer 
-          isVisible={showTimer} 
-          onClose={() => setShowTimer(false)} 
-          lessonId={progress.currentVocabLessonId}
-        />
         <ShareProgress 
           isVisible={showShare} 
           onClose={() => setShowShare(false)} 

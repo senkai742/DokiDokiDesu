@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LessonPhase, GlobalProgress } from '../types/lesson';
+import { LessonPhase, GlobalProgress, Collection } from '../types/lesson';
 
 interface AppState {
   progress: GlobalProgress;
@@ -26,6 +26,12 @@ interface AppState {
   markVocabLearned: (vocabId: string) => void;
   markGrammarLearned: (grammarId: string) => void;
   resetProgress: () => void;
+  // Collections
+  createCollection: (name: string, emoji: string) => void;
+  deleteCollection: (id: string) => void;
+  renameCollection: (id: string, name: string, emoji: string) => void;
+  addWordToCollection: (collectionId: string, wordId: string) => void;
+  removeWordFromCollection: (collectionId: string, wordId: string) => void;
 }
 
 const initialState: GlobalProgress = {
@@ -51,6 +57,7 @@ const initialState: GlobalProgress = {
   difficultWords: [],
   studyMinutes: 0,
   studyHistory: [],
+  collections: [],
 };
 
 export const useStore = create<AppState>()(
@@ -293,6 +300,69 @@ export const useStore = create<AppState>()(
           };
         });
       },
+
+      // ── Collections ─────────────────────────────────────────────────────
+      createCollection: (name: string, emoji: string) => {
+        const newCollection: Collection = {
+          id: `col_${Date.now()}`,
+          name,
+          emoji,
+          wordIds: [],
+          createdAt: new Date().toISOString(),
+        };
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            collections: [...(state.progress.collections ?? []), newCollection],
+          },
+        }));
+      },
+
+      deleteCollection: (id: string) => {
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            collections: (state.progress.collections ?? []).filter(c => c.id !== id),
+          },
+        }));
+      },
+
+      renameCollection: (id: string, name: string, emoji: string) => {
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            collections: (state.progress.collections ?? []).map(c =>
+              c.id === id ? { ...c, name, emoji } : c
+            ),
+          },
+        }));
+      },
+
+      addWordToCollection: (collectionId: string, wordId: string) => {
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            collections: (state.progress.collections ?? []).map(c =>
+              c.id === collectionId
+                ? { ...c, wordIds: [...new Set([...c.wordIds, wordId])] }
+                : c
+            ),
+          },
+        }));
+      },
+
+      removeWordFromCollection: (collectionId: string, wordId: string) => {
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            collections: (state.progress.collections ?? []).map(c =>
+              c.id === collectionId
+                ? { ...c, wordIds: c.wordIds.filter(id => id !== wordId) }
+                : c
+            ),
+          },
+        }));
+      },
     }),
     {
       name: 'dokidoki-storage',
@@ -327,6 +397,7 @@ export const useStore = create<AppState>()(
               difficultWords: oldProgress.difficultWords ?? [],
               studyMinutes: oldProgress.studyMinutes ?? 0,
               studyHistory: oldProgress.studyHistory ?? [],
+              collections: oldProgress.collections ?? [],
             }
           };
         }

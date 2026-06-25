@@ -6,9 +6,12 @@ import { useStore } from '../store/useStore';
 import { FlipCard } from '../components/ui/FlipCard';
 import { DokiButton } from '../components/ui/DokiButton';
 import { useSharedValue } from 'react-native-reanimated';
-import { Brain, RotateCcw, ChevronRight, Sparkles, Heart, AlertCircle, Volume2 } from 'lucide-react-native';
+import { Brain, RotateCcw, ChevronRight, Sparkles, Heart, AlertCircle, Volume2, FolderOpen } from 'lucide-react-native';
 import { LESSON_1_VOCAB } from '../constants/vocab';
 import { tts } from '../utils/tts';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 const { width } = Dimensions.get('window');
 
@@ -19,6 +22,7 @@ type ReviewMode = 'random' | 'difficult' | 'favorites';
 
 export const ReviewScreen: React.FC = () => {
   const { progress, addDifficultWord, removeDifficultWord, addFavorite, removeFavorite } = useStore();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
@@ -79,6 +83,20 @@ export const ReviewScreen: React.FC = () => {
   if (sessionComplete) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <TouchableOpacity
+          style={[styles.collectionsBtn, styles.collectionsBtnTop]}
+          onPress={() => navigation.navigate('Collections')}
+          activeOpacity={0.8}
+        >
+          <FolderOpen size={18} color={COLORS.primary} />
+          <Text style={styles.collectionsBtnText}>My Collections</Text>
+          <View style={styles.collectionsBadge}>
+            <Text style={styles.collectionsBadgeText}>
+              {(progress.collections ?? []).length + 1}
+            </Text>
+          </View>
+          <ChevronRight size={16} color={COLORS.textSecondary} />
+        </TouchableOpacity>
         <View style={styles.completeContainer}>
           <Sparkles size={80} color={COLORS.primary} />
           <Text style={styles.completeTitle}>Review Complete!</Text>
@@ -98,6 +116,20 @@ export const ReviewScreen: React.FC = () => {
   if (!currentWord) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <TouchableOpacity
+          style={[styles.collectionsBtn, styles.collectionsBtnTop]}
+          onPress={() => navigation.navigate('Collections')}
+          activeOpacity={0.8}
+        >
+          <FolderOpen size={18} color={COLORS.primary} />
+          <Text style={styles.collectionsBtnText}>My Collections</Text>
+          <View style={styles.collectionsBadge}>
+            <Text style={styles.collectionsBadgeText}>
+              {(progress.collections ?? []).length + 1}
+            </Text>
+          </View>
+          <ChevronRight size={16} color={COLORS.textSecondary} />
+        </TouchableOpacity>
         <View style={styles.emptyContainer}>
           <Brain size={64} color={COLORS.textSecondary} />
           <Text style={styles.emptyTitle}>No Words to Review</Text>
@@ -117,6 +149,22 @@ export const ReviewScreen: React.FC = () => {
           {currentIndex + 1} / {reviewWords.length}
         </Text>
       </View>
+
+      {/* Collections shortcut */}
+      <TouchableOpacity
+        style={styles.collectionsBtn}
+        onPress={() => navigation.navigate('Collections')}
+        activeOpacity={0.8}
+      >
+        <FolderOpen size={18} color={COLORS.primary} />
+        <Text style={styles.collectionsBtnText}>My Collections</Text>
+        <View style={styles.collectionsBadge}>
+          <Text style={styles.collectionsBadgeText}>
+            {(progress.collections ?? []).length + 1}
+          </Text>
+        </View>
+        <ChevronRight size={16} color={COLORS.textSecondary} />
+      </TouchableOpacity>
 
       {/* Review Mode Selector */}
       <View style={styles.modeSelector}>
@@ -450,5 +498,41 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontSize: 14,
     fontWeight: '600',
+  },
+  collectionsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.gray,
+    marginHorizontal: SPACING.md,
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
+  },
+  collectionsBtnText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.accent,
+  },
+  collectionsBadge: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  collectionsBadgeText: {
+    color: COLORS.background,
+    fontWeight: '900',
+    fontSize: 12,
+  },
+  collectionsBtnTop: {
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
   },
 });

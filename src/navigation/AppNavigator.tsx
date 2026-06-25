@@ -20,6 +20,8 @@ import { WritingPracticeScreen } from '../screens/WritingPracticeScreen';
 import { LearnScreen } from '../screens/LearnScreen';
 import { Home, Map, BookOpen, User, Search as SearchIcon } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
+import { CollectionsScreen } from '../screens/CollectionsScreen';
+import { CollectionDetailScreen } from '../screens/CollectionDetailScreen';
 
 export type TabParamList = {
   Home: undefined;
@@ -42,6 +44,8 @@ export type RootStackParamList = {
   StudyStreak: undefined;
   Search: undefined;
   WritingPractice: undefined;
+  Collections: undefined;
+  CollectionDetail: { collectionId: string };
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -120,6 +124,8 @@ export const AppNavigator = () => {
           <Stack.Screen name="StudyStreak" component={StudyStreakScreen} />
           <Stack.Screen name="Search" component={SearchScreen} />
           <Stack.Screen name="WritingPractice" component={WritingPracticeScreen} />
+          <Stack.Screen name="Collections" component={CollectionsScreen} />
+          <Stack.Screen name="CollectionDetail" component={CollectionDetailScreen} />
         </>
       )}
     </Stack.Navigator>
