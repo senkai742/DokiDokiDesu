@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  TextInput, Modal, ScrollView, Alert,
+  TextInput, Modal, ScrollView, Alert, Keyboard, Platform, KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../constants/theme';
@@ -195,42 +195,47 @@ export const CollectionsScreen: React.FC = () => {
           activeOpacity={1}
           onPress={() => setShowNewForm(false)}
         >
-          <TouchableOpacity activeOpacity={1} style={styles.modalSheet}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>New Collection</Text>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+          >
+            <TouchableOpacity activeOpacity={1} style={styles.modalSheet}>
+              <View style={styles.sheetHandle} />
+              <Text style={styles.sheetTitle}>New Collection</Text>
 
-            <Text style={styles.sheetLabel}>Pick an icon</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.emojiPickerModal}>
-              {EMOJI_OPTIONS.map(e => (
-                <TouchableOpacity
-                  key={e}
-                  onPress={() => setNewEmoji(e)}
-                  style={[styles.emojiBtn, newEmoji === e && styles.emojiBtnActive]}
-                >
-                  <Text style={styles.emojiText}>{e}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+              <Text style={styles.sheetLabel}>Pick an icon</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.emojiPickerModal}>
+                {EMOJI_OPTIONS.map(e => (
+                  <TouchableOpacity
+                    key={e}
+                    onPress={() => setNewEmoji(e)}
+                    style={[styles.emojiBtn, newEmoji === e && styles.emojiBtnActive]}
+                  >
+                    <Text style={styles.emojiText}>{e}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
 
-            <Text style={styles.sheetLabel}>Name</Text>
-            <TextInput
-              style={styles.sheetInput}
-              value={newName}
-              onChangeText={setNewName}
-              placeholder="e.g. Daily verbs, Food words..."
-              placeholderTextColor={COLORS.textSecondary}
-              maxLength={40}
-              autoFocus
-            />
+              <Text style={styles.sheetLabel}>Name</Text>
+              <TextInput
+                style={styles.sheetInput}
+                value={newName}
+                onChangeText={setNewName}
+                placeholder="e.g. Daily verbs, Food words..."
+                placeholderTextColor={COLORS.textSecondary}
+                maxLength={40}
+                autoFocus
+              />
 
-            <TouchableOpacity
-              style={[styles.createBtn, !newName.trim() && styles.createBtnDisabled]}
-              onPress={handleCreate}
-              disabled={!newName.trim()}
-            >
-              <Text style={styles.createBtnText}>Create Collection</Text>
+              <TouchableOpacity
+                style={[styles.createBtn, !newName.trim() && styles.createBtnDisabled]}
+                onPress={handleCreate}
+                disabled={!newName.trim()}
+              >
+                <Text style={styles.createBtnText}>Create Collection</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
-          </TouchableOpacity>
+          </KeyboardAvoidingView>
         </TouchableOpacity>
       </Modal>
     </SafeAreaView>
@@ -448,5 +453,9 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     fontSize: 16,
     letterSpacing: 0.5,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+    justifyContent: 'flex-end',
   },
 });

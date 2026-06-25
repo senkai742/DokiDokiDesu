@@ -356,6 +356,11 @@ export const VocabPhase: React.FC = () => {
             <Text style={styles.gridTitle}>ALL WORDS</Text>
             <Text style={styles.gridCount}>{vocabData.length} vocab</Text>
           </View>
+          <View style={styles.gridHint}>
+            <Text style={styles.gridHintText}>
+              ♥ Favourite   📁 Add to collection
+            </Text>
+          </View>
           <FlatList
             key="grid-list"
             data={vocabData}
@@ -379,15 +384,19 @@ export const VocabPhase: React.FC = () => {
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => toggleFavorite(globalId)}
-                        onLongPress={() => openCollectionPicker(globalId)}
                         style={styles.gridAudioBtn}
-                        delayLongPress={400}
                       >
                         <Heart
                           size={13}
                           color="#FF4D6D"
                           fill={isFav ? '#FF4D6D' : 'transparent'}
                         />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => openCollectionPicker(globalId)}
+                        style={styles.gridAudioBtn}
+                      >
+                        <FolderPlus size={13} color="#C084FC" />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -646,6 +655,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.primary,
     letterSpacing: 1,
+  },
+  gridHint: {
+    marginBottom: SPACING.md,
+  },
+  gridHintText: {
+    fontSize: 11,
+    color: '#555',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   gridContent: {
     paddingBottom: 20,
