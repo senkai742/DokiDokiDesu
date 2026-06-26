@@ -23,13 +23,13 @@ const FACTS = [
 ];
 
 export const Dashboard: React.FC = () => {
-type DashboardNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Home'>,
-  NativeStackNavigationProp<RootStackParamList>
->;
+  type DashboardNavigationProp = CompositeNavigationProp<
+    BottomTabNavigationProp<TabParamList, 'Home'>,
+    NativeStackNavigationProp<RootStackParamList>
+  >;
 
   const navigation = useNavigation<DashboardNavigationProp>();
-  const { progress } = useStore();
+  const { progress, recordActivity } = useStore();
   const [isLoading, setIsLoading] = useState(true);
   const [showShare, setShowShare] = useState(false);
 
@@ -71,23 +71,23 @@ type DashboardNavigationProp = CompositeNavigationProp<
             <SkeletonLoader width={120} height={16} style={{ marginBottom: SPACING.sm }} />
             <SkeletonLoader width={200} height={42} />
           </View>
-          
+
           {/* Hero Skeleton */}
           <SkeletonLoader height={200} borderRadius={24} style={{ marginBottom: SPACING.md }} />
-          
+
           {/* Stats Skeleton */}
           <View style={styles.row}>
             <SkeletonLoader height={100} style={{ flex: 1, borderRadius: 20 }} />
             <SkeletonLoader height={100} style={{ flex: 1, borderRadius: 20, marginHorizontal: SPACING.sm }} />
             <SkeletonLoader height={100} style={{ flex: 1, borderRadius: 20 }} />
           </View>
-          
+
           {/* Bento Grid Skeleton */}
           <View style={styles.bentoGrid}>
             <SkeletonLoader height={120} style={{ flex: 2, borderRadius: 20 }} />
             <SkeletonLoader height={120} style={{ flex: 1.2, borderRadius: 20, marginLeft: SPACING.md }} />
           </View>
-          
+
           {/* Fact Card Skeleton */}
           <SkeletonLoader height={100} borderRadius={20} />
         </ScrollView>
@@ -226,29 +226,29 @@ type DashboardNavigationProp = CompositeNavigationProp<
         {/* QUICK ACCESS TOOLS */}
         <Text style={styles.sectionTitle}>TOOLS</Text>
         <View style={styles.toolsGrid}>
-          <TouchableOpacity 
-            style={styles.toolBox} 
+          <TouchableOpacity
+            style={styles.toolBox}
             onPress={() => navigation.navigate('Search')}
           >
             <Search color={COLORS.primary} size={28} />
             <Text style={styles.toolTitle}>Dictionary</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.toolBox} 
+          <TouchableOpacity
+            style={styles.toolBox}
             onPress={() => navigation.navigate('WritingPractice')}
           >
             <PenTool color={COLORS.secondary} size={28} />
             <Text style={styles.toolTitle}>Writing</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.toolBox} 
+          <TouchableOpacity
+            style={styles.toolBox}
             onPress={() => navigation.navigate('StudyStreak')}
           >
             <Calendar color="#FFD700" size={28} />
             <Text style={styles.toolTitle}>Streak</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.toolBox} 
+          <TouchableOpacity
+            style={styles.toolBox}
             onPress={() => navigation.navigate('Collections')}
           >
             <FolderOpen color="#C084FC" size={28} />
@@ -269,9 +269,9 @@ type DashboardNavigationProp = CompositeNavigationProp<
         </View>
 
         {/* Modals */}
-        <ShareProgress 
-          isVisible={showShare} 
-          onClose={() => setShowShare(false)} 
+        <ShareProgress
+          isVisible={showShare}
+          onClose={() => setShowShare(false)}
         />
       </ScrollView>
     </SafeAreaView>
