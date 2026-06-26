@@ -19,7 +19,22 @@ const FACTS = [
   "There are no plural forms or gendered nouns in Japanese.",
   "Japan consists of over 6,800 islands.",
   "Slurping noodles is considered polite and shows you're enjoying the meal!",
-  "Kanji are adopted Chinese characters, while Hiragana and Katakana are native scripts."
+  "Kanji are adopted Chinese characters, while Hiragana and Katakana are native scripts.",
+  "Japanese uses a Subject-Object-Verb (SOV) structure, meaning the verb always comes at the very end of the sentence.",
+  "There are dozens of ways to say 'I' or 'me' in Japanese, chosen based on gender, age, and social context.",
+  "The numbers 4 and 9 are often avoided in Japan because their pronunciations sound like the words for 'death' and 'suffering'.",
+  "Japanese has thousands of onomatopoeia words, with unique sounds for things like silence (shin-shin) or a heavy downpour (zaa-zaa).",
+  "Katakana is used for foreign loanwords, but it is also used for animal names, scientific terms, and emphasis.",
+  "The Kanji for Tokyo (東京) literally means 'Eastern Capital.' Before 1868, the capital was Kyoto (京都), meaning 'Capital City'.",
+  "Train punctuality is so precise in Japan that delays of just a few minutes warrant an official 'delay certificate' for your school or employer.",
+  "Japanese vending machines are everywhere—roughly one for every 30 people—and they offer both ice-cold and piping-hot canned drinks.",
+  "The cultural concept of 'Mottainai' expresses deep regret over waste and encourages reusing, recycling, and respecting resources.",
+  "In Japan, it is customary to remove your shoes at the entrance (genkan) of homes, traditional restaurants, and schools.",
+  "When paying at a Japanese store, you should place your money or card on the small tray provided next to the register rather than handing it directly to the cashier.",
+  "Counter words (助数詞) change depending on what you are counting—there are different counters for long cylindrical objects, flat items, small animals, and people.",
+  "The JLPT N1 exam requires knowing around 2,000 Kanji and roughly 10,000 vocabulary words.",
+  "Unlike English, Japanese has no native equivalent for the relative pronouns 'who', 'which', or 'that'; instead, modifying clauses are placed directly in front of the noun.",
+  "The word 'Sayonara' implies a long-term or permanent farewell. For daily casual goodbyes, Japanese speakers prefer 'Ja ne' or 'Mata ne'."
 ];
 
 export const Dashboard: React.FC = () => {
