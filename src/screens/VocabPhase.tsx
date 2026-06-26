@@ -13,6 +13,7 @@ import { ChevronLeft, Volume2, Search, BookOpen, List, ChevronRight, Lightbulb, 
 import { DokiButton } from '../components/ui/DokiButton';
 import { tts } from '../utils/tts';
 import { useStore } from '../store/useStore';
+import { Sparkles } from 'lucide-react-native';
 import { makeGlobalWordId } from '../utils/vocabLookup';
 
 const { width } = Dimensions.get('window');
@@ -22,7 +23,7 @@ export const VocabPhase: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'VocabPhase'>>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { lessonId } = route.params;
-  const { completeVocabLesson, incrementVocab, addFavorite, removeFavorite, addWordToCollection, progress } = useStore();
+  const { completeVocabLesson, incrementVocab, addFavorite, removeFavorite, addWordToCollection, progress, markVocabLearned } = useStore();
 
   // Collection picker modal state
   const [collectionPickerWordId, setCollectionPickerWordId] = useState<string | null>(null);
@@ -96,14 +97,14 @@ export const VocabPhase: React.FC = () => {
 
   const currentBatch = batches[activeBatchIndex];
   const currentWord = currentBatch[wordIndexInBatch];
-  
+
   // Track "seen" words for review mode
   const seenWords = useMemo(() => {
     const totalSeenCount = activeBatchIndex * BATCH_SIZE + wordIndexInBatch + 1;
     return vocabData.slice(0, totalSeenCount);
   }, [activeBatchIndex, wordIndexInBatch, vocabData]);
 
-  const filteredSeenWords = seenWords.filter(word => 
+  const filteredSeenWords = seenWords.filter(word =>
     word.english.toLowerCase().includes(searchQuery.toLowerCase()) ||
     word.kana.includes(searchQuery) ||
     word.kanji.includes(searchQuery)
@@ -122,8 +123,8 @@ export const VocabPhase: React.FC = () => {
 
   const handleNextWord = () => {
     isFlipped.value = 0;
-    // Increment vocab count for the word just studied
-    incrementVocab(1);
+    // Mark vocab as learned for the word just studied
+    markVocabLearned(makeGlobalWordId(lessonId, currentWord.id));
     if (wordIndexInBatch < currentBatch.length - 1) {
       setWordIndexInBatch(prev => prev + 1);
     } else if (activeBatchIndex < batches.length - 1) {
@@ -165,19 +166,19 @@ export const VocabPhase: React.FC = () => {
           <ChevronLeft color={COLORS.accent} size={28} />
         </TouchableOpacity>
         <View style={styles.modeToggle}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setViewMode('study')}
             style={[styles.modeBtn, viewMode === 'study' && styles.activeModeBtn]}
           >
             <BookOpen size={20} color={viewMode === 'study' ? COLORS.background : COLORS.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setViewMode('review')}
             style={[styles.modeBtn, viewMode === 'review' && styles.activeModeBtn]}
           >
             <List size={20} color={viewMode === 'review' ? COLORS.background : COLORS.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setViewMode('grid')}
             style={[styles.modeBtn, viewMode === 'grid' && styles.activeModeBtn]}
           >
@@ -189,13 +190,13 @@ export const VocabPhase: React.FC = () => {
       {/* Batch Progress Segments */}
       <View style={styles.progressSegments}>
         {batches.map((_, idx) => (
-          <View 
-            key={idx} 
+          <View
+            key={idx}
             style={[
-              styles.segment, 
+              styles.segment,
               idx < activeBatchIndex && styles.segmentCompleted,
               idx === activeBatchIndex && styles.segmentActive,
-            ]} 
+            ]}
           >
             {idx === activeBatchIndex && (
               <View style={[styles.segmentFill, { width: `${((wordIndexInBatch + 1) / BATCH_SIZE) * 100}%` }]} />
@@ -208,7 +209,7 @@ export const VocabPhase: React.FC = () => {
         <View style={styles.studyView}>
           <View style={styles.contentArea}>
             <View style={styles.carouselContainer}>
-              <FlipCard 
+              <FlipCard
                 isFlipped={isFlipped}
                 onPress={toggleFlip}
                 frontContent={
@@ -237,7 +238,7 @@ export const VocabPhase: React.FC = () => {
                   <RotateCcw size={16} color={COLORS.textSecondary} />
                   <Text style={styles.prevWordLabel}>Previous:</Text>
                   <Text style={styles.prevWordText}>
-                    {activeBatchIndex > 0 && wordIndexInBatch === 0 
+                    {activeBatchIndex > 0 && wordIndexInBatch === 0
                       ? batches[activeBatchIndex - 1][batches[activeBatchIndex - 1].length - 1].kanji
                       : currentBatch[wordIndexInBatch - 1]?.kanji}
                   </Text>
@@ -261,7 +262,7 @@ export const VocabPhase: React.FC = () => {
           <View style={styles.footer}>
             <Text style={styles.batchInfo}>BATCH {activeBatchIndex + 1} • {wordIndexInBatch + 1}/{BATCH_SIZE}</Text>
             <View style={styles.buttonRow}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={handlePrevWord}
                 disabled={activeBatchIndex === 0 && wordIndexInBatch === 0}
                 style={[styles.navBtn, styles.prevBtn, (activeBatchIndex === 0 && wordIndexInBatch === 0) && styles.navBtnDisabled]}
@@ -283,17 +284,17 @@ export const VocabPhase: React.FC = () => {
                 />
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={handleNextWord}
                 style={[styles.navBtn, styles.nextBtn]}
               >
                 <View style={{ width: 24 }} />
                 <Text style={styles.nextBtnText}>
-                  {activeBatchIndex === batches.length - 1 && wordIndexInBatch === currentBatch.length - 1 
-                    ? "FINISH" 
-                    : wordIndexInBatch === currentBatch.length - 1 
-                    ? "NEXT BATCH" 
-                    : "NEXT"}
+                  {activeBatchIndex === batches.length - 1 && wordIndexInBatch === currentBatch.length - 1
+                    ? "FINISH"
+                    : wordIndexInBatch === currentBatch.length - 1
+                      ? "NEXT BATCH"
+                      : "NEXT"}
                 </Text>
                 <ChevronRight color={COLORS.background} size={24} />
               </TouchableOpacity>
@@ -324,7 +325,7 @@ export const VocabPhase: React.FC = () => {
         <View style={styles.reviewView}>
           <View style={styles.searchContainer}>
             <Search size={20} color={COLORS.textSecondary} />
-            <TextInput 
+            <TextInput
               style={styles.searchInput}
               placeholder="Search seen words..."
               placeholderTextColor={COLORS.textSecondary}
@@ -408,6 +409,20 @@ export const VocabPhase: React.FC = () => {
                 </View>
               );
             }}
+            ListFooterComponent={
+              <View style={styles.gridFooter}>
+                <TouchableOpacity
+                  style={styles.gridCompleteBtn}
+                  onPress={() => {
+                    completeVocabLesson(lessonId);
+                    setShowCongrats(true);
+                  }}
+                >
+                  <Sparkles size={20} color={COLORS.background} />
+                  <Text style={styles.gridCompleteBtnText}>Mark as Completed</Text>
+                </TouchableOpacity>
+              </View>
+            }
           />
         </View>
       )}
@@ -667,6 +682,26 @@ const styles = StyleSheet.create({
   },
   gridContent: {
     paddingBottom: 20,
+  },
+  gridFooter: {
+    marginTop: SPACING.md,
+    alignItems: 'center',
+    paddingBottom: SPACING.xl,
+  },
+  gridCompleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: 14,
+  },
+  gridCompleteBtnText: {
+    color: COLORS.background,
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   gridRow: {
     gap: 10,
